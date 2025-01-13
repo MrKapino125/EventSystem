@@ -1,22 +1,128 @@
 import json
 import Effect
-from State import GameState
+import pygame
 
 
-class Card(object):
+class Card:
     def __init__(self, data):
         self.data = data
+        self.pos = (0, 0)
+        self.width = 100
+        self.height = 200
 
-    def play(self, source, game_state: GameState):
-        game_state.apply_effect(Effect.CardPlayEffect(self.data), source, [self])
+    def __repr__(self):
+        return self.data["name"]
+
+    def play(self, source, game_state):
+        pass
+
+    def render(self, screen):
+        fill_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, self.width, self.height))
+
+        screen.blit(fill_surface, (self.pos[0], self.pos[1]))
+
+        pygame.draw.rect(screen, (255, 0, 0), (self.pos[0], self.pos[1], self.width, self.height), 2)
+
+        text = self.data["name"]
+
+        font_size = 20
+        font = pygame.font.Font(None, font_size)
+        words = text.split()
+        lines = []
+        current_line = ""
+
+        for word in words:
+            test_line = current_line + word + " "
+            text_width, _ = font.size(test_line)
+            if text_width <= self.width - 10:  # Add a small padding
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word + " "
+        lines.append(current_line)  # Add the last line
+
+        y_offset = 0
+        line_spacing = 5  # spacing between lines
+        for line in lines:
+            text_surface = font.render(line, True, (255,0,0))
+            text_rect = text_surface.get_rect(center=(self.pos[0] + self.width // 2, self.pos[1] + self.height // 2 + y_offset - (len(lines) - 1) * (font_size + line_spacing) // 2))  # vertical align
+            screen.blit(text_surface, text_rect)
+            y_offset += font_size + line_spacing
+
+
+class HogwartsCard(Card):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def play(self, source, game_state):
+        game_state.apply_effect(Effect.CardPlayEffect(self), source, [game_state.current_player])
+
+
+class DarkArtsCard(Card):
+    def __init__(self, data):
+        super().__init__(data)
+
+    def play(self, source, game_state):
+        game_state.apply_effect(Effect.CardPlayEffect(self), self, [game_state.current_player])
+
+
+class PlaceCard(Card):
+    def __init__(self, data):
+        super().__init__(data)
+        self.skulls = 0
+        self.max_skulls = self.data["max_skulls"]
+
+    def add_skulls(self, skulls):
+        self.skulls += skulls
+        if self.skulls > self.max_skulls:
+            self.skulls = self.max_skulls
+
+    def remove_skulls(self, skulls):
+        self.skulls -= skulls
+        if self.skulls < 0:
+            self.skulls = 0
 
 
 def load_cards(level):
-    with open("card_data.json", "r", encoding="UTF-8") as f:
+    hogwarts_cards = load_hogwarts_cards(level)
+    place_cards = load_place_cards(level)
+    dark_arts_cards = load_dark_arts_cards(level)
+    
+    return hogwarts_cards, place_cards, dark_arts_cards
+
+
+def load_hogwarts_cards(level):
+    with open("card_data/hogwarts_card_data.json", "r", encoding="UTF-8") as f:
         cards = []
         cards_dict = json.load(f)
         for card in cards_dict:
             if card["level"] <= level:
-                cards.append(Card(card))
+                amount = card.get("amount", 1)
+                for i in range(amount):
+                    cards.append(HogwartsCard(card))
 
         return cards
+
+
+def load_place_cards(level):
+    with open("card_data/place_card_data.json", "r", encoding="UTF-8") as f:
+        cards = []
+        cards_dict = json.load(f)
+        for card in cards_dict:
+            if card["level"] == level:
+                cards.append(PlaceCard(card))
+
+        return cards
+
+
+def load_dark_arts_cards(level):
+    with open("card_data/dark_arts_card_data.json", "r", encoding="UTF-8") as f:
+        cards = []
+        cards_dict = json.load(f)
+        for card in cards_dict:
+            if card["level"] <= level:
+                cards.append(DarkArtsCard(card))
+
+        return cards
+

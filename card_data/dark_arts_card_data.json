@@ -1,0 +1,19 @@
+[
+    {
+        "name": "Obliviate!",
+        "level": 2,
+        "description": "ALLE Helden wählen: Wirf einen Spruch ab oder du verlierst 2 Herzen",
+        "effects": [
+            {
+                "type": "choice",
+                "choice_targets": "all",
+                "num_effects": 1,
+                "modifier": null,
+                "options": [
+                    {"type": "drop_cards", "card_type": "spell", "amount": 1, "target": "self"},
+                    {"type": "damage", "amount": 2, "target": "self"}
+                ]
+            }
+        ]
+    }
+]

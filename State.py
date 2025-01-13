@@ -1,38 +1,87 @@
+import Card
 import Effect
+import Enemy
 import Eventhandler
 import EffectModifiers
 import Player
+import Board
+from CardPositionManager import CardPositionManager
 
 
 class State:
-    def __init__(self):
-        pass
+    def __init__(self, state_manager):
+        self.state_manager = state_manager
 
     def tick(self):
         pass
 
-    def render(self):
+    def render(self, screen):
         pass
 
 
 class GameState(State):
-    def __init__(self, event_handler: Eventhandler.EventHandler, players: list, level):
-        super().__init__()
+    def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager):
+        super().__init__(state_manager)
         self.event_handler = event_handler
-        self.players = players
+        self.players_dict = players_dict
+        self.players = list(players_dict.values())
         self.level = level
         self.active_modifiers = []
         self.current_player_idx = 0
-        self.current_player = players[self.current_player_idx]
-        self.first_heal_given_this_turn = {}
+        self.current_player = self.players[self.current_player_idx]
+        self.hogwarts_cards, self.place_cards, self.dark_arts_cards = Card.load_cards(level)
+        self.enemies = []
+
+        self.init_decks()
+        self.init_enemies()
+
+        self.board = Board.Board(self.hogwarts_cards, self.dark_arts_cards, self.enemies, self.place_cards)
+        self.board.setup(level)
+
+        self.card_position_manager = CardPositionManager(self.players, self.board)
+        self.card_position_manager.allign_shop_cards()
+
         self.valid_dice = []
         if self.level >= 4:
             self.valid_dice = ["gryffindor", "hufflepuff", "ravenclaw", "slytherin"]
-        if self.level >= 9:
-            self.valid_dice.append("monster")
+
+    def tick(self):
+        pass
+
+    def render(self, screen):
+        self.board.render(screen)
+        for player in self.players:
+            player.render_hand(screen)
+
+    def init_decks(self):
+        remaining_cards = []
+
+        base_deck = [self.hogwarts_cards[0] for _ in range(7)]
+        self.hogwarts_cards.pop(0)
+        for player in self.players:
+            player.deck = base_deck
+
+        for card in self.hogwarts_cards:
+            belonging = card.data.get("belonging")
+            if belonging is None:
+                remaining_cards.append(card)
+            else:
+                self.players_dict[belonging].deck.append(card)
+
+        self.hogwarts_cards = remaining_cards
+
+    def init_enemies(self):
+        if self.level >= 1:
+            self.enemies += [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Quirrell()]
 
     def start_turn(self, player):
-        pass
+        self.current_player = player
+
+        dark_arts_cards = self.board.active_place.data['dark_arts_cards']
+        for _ in range(dark_arts_cards):
+            dark_arts_card = self.board.dark_arts_stack.pop()
+            dark_arts_card.play()
+            self.board.dark_arts_stack.append(dark_arts_card)
 
     def end_turn(self, player):
         pass
@@ -65,7 +114,11 @@ class GameState(State):
 
     def handle_card_played_event(self, event):
         source = event.data["source"]
-        card_data = event.data["card_data"]
+        card = event.data["card"]
+        card_data = card.data
+
+        if isinstance(self.current_player, Player.Hermione) and isinstance(card, Card.HogwartsCard):
+            self.current_player.apply_hero_effect(event, self)
 
         for effect_data in card_data["effects"]:
             self._apply_card_effects(source, effect_data, card_data)
@@ -91,8 +144,8 @@ class GameState(State):
         source = event.data['source']
         amount = event.data['amount']
 
-        if isinstance(self.current_player, Player.Harry):
-            self.current_player.apply_hero_effect(event, self)
+        if "Harry Potter" in self.existing_players:
+            self.existing_players["Harry Potter"].apply_hero_effect(event, self)
 
         #remove skull from place
 
@@ -106,6 +159,9 @@ class GameState(State):
         target = event.data['target']
         amount = event.data['amount']
 
+        if isinstance(self.current_player, Player.Ron):
+            self.current_player.apply_hero_effect(event, self)
+
     def handle_coin_given_event(self, event):
         target = event.data['target']
         amount = event.data['amount']
@@ -114,11 +170,20 @@ class GameState(State):
 
     # PRIVATE #
 
-    def _apply_card_effects(self, source, effect_data, card_data):
+    def _apply_card_effects(self, source, effect_data, card_data, active_player=None):
         effect_type = effect_data["type"]
+        if active_player is None:
+            active_player = self.current_player
 
         if effect_type == "choice":
-            self._apply_effect_choice(source, effect_data, card_data)
+            choice_targets_type = effect_data.get("choice_targets")
+            if choice_targets_type is None:
+                self._apply_effect_choice(active_player, source, effect_data, card_data)
+            else:
+                choice_targets = self._resolve_targets(active_player, choice_targets_type, None)
+                for choice_target in choice_targets:
+                    active_player = choice_target
+                    self._apply_effect_choice(active_player, source, effect_data, card_data)
             return
 
         if effect_type == "give_coins":
@@ -127,6 +192,8 @@ class GameState(State):
             effect = Effect.HealEffect(effect_data["amount"])
         elif effect_type == "give_bolts":
             effect = Effect.GiveBoltEffect(effect_data["amount"])
+        elif effect_type == "damage":
+            effect = Effect.DamageEffect(effect_data["amount"])
         elif effect_type == "throw_dice":
             dice_type = effect_data["dice_type"]
             if effect_data["dice_type"] == "choice":
@@ -136,16 +203,16 @@ class GameState(State):
         else:
             raise ValueError(f"Unknown effect type: {effect_type}")
 
-        targets = self._resolve_targets(source, effect_data["target"], effect_data)
+        targets = self._resolve_targets(active_player, effect_data["target"], effect_data)
 
         self.apply_effect(effect, source, targets)
 
-    def _apply_effect_choice(self, source, effect_data, card_data):
+    def _apply_effect_choice(self, player, source, effect_data, card_data):
         description = card_data.get("description")
         num_effects = effect_data["num_effects"]
         options = effect_data["options"]
 
-        print(f"{source.name}, choose {num_effects} effects:")
+        print(f"{player.name}, choose {num_effects} effects:")
 
         if description is not None:
             options_desc = description.split(" oder ")
@@ -167,7 +234,7 @@ class GameState(State):
 
         # Apply chosen effects
         for chosen_effect in chosen_effects:
-            self._apply_card_effects(source, chosen_effect, card_data)
+            self._apply_card_effects(source, chosen_effect, card_data, player)
 
     def _resolve_targets(self, source, target_type, effect_data):
         if target_type == "self":
@@ -285,3 +352,14 @@ class GameState(State):
             return [self.select_single_target(source, valid_targets)]
         else:
             return self.select_multiple_targets(source, num_targets, valid_targets)
+
+
+class StateManager:
+    def __init__(self):
+        self.current_state = None
+        self.game_data = {}
+
+    def switch_state(self, new_state, data=None):
+        if data:
+            self.game_data.update(data)
+        self.current_state = new_state

@@ -13,10 +13,14 @@ class Player:
         self.hand = []
         self.discard_pile = []
 
+    def render_hand(self, screen):
+        for card in self.hand:
+            card.render(screen)
+
     def apply_hero_effect(self, event, game_state):
         pass
 
-    def handle_end_turn(self, game_state):
+    def apply_end_turn_effect(self, game_state):
         self.coins = 0
         self.bolts = 0
 
@@ -32,12 +36,16 @@ class Player:
     def apply_give_coins_effect(self, amount, game_state):
         self.give_coins(amount)
 
+    def apply_draw_card_effect(self, amount, game_state):
+        for _ in range(amount):
+            self.draw_card()
+
     def draw_card(self):
-        if self.deck:
-            card = self.deck.pop()
-            self.hand.append(card)
-            return card
-        return None  # Handle empty deck
+        if not self.deck:
+            self.reshuffle_deck()
+
+        card = self.deck.pop()
+        self.hand.append(card)
 
     def discard_card(self, card):
         self.hand.remove(card)
@@ -94,8 +102,8 @@ class Harry(Player):
             else:
                 print("No available targets")
 
-    def handle_end_turn(self, game_state):
-        super().handle_end_turn(game_state)
+    def apply_end_turn_effect(self, game_state):
+        super().apply_end_turn_effect(game_state)
         self.effect_played = False
 
 
@@ -108,6 +116,9 @@ class Neville(Player):
     def apply_hero_effect(self, event, game_state):
         target = event.data['target']
 
+        if target.health == 0 or target.health == 10:
+            return
+
         if 3 <= game_state.level <= 6:
             if not self.first_heal_given_this_turn.get(target, False):
                 self.first_heal_given_this_turn[target] = True
@@ -119,8 +130,8 @@ class Neville(Player):
             else:
                 self.effect_played = False
 
-    def handle_end_turn(self, game_state):
-        super().handle_end_turn(game_state)
+    def apply_end_turn_effect(self, game_state):
+        super().apply_end_turn_effect(game_state)
         self.first_heal_given_this_turn = {}
 
 
@@ -131,18 +142,22 @@ class Ron(Player):
         self.effect_played = False
 
     def apply_hero_effect(self, event, game_state: GameState):
-        target = event.data['target']
-        amount = event.data['amount']
-
         if self.effect_played:
             return
+
+        target = event.data['target']
+        amount = event.data['amount']
 
         if target not in self.enemies_attacked:
             self.enemies_attacked[target] = amount
         else:
             self.enemies_attacked[target] += amount
 
+        if target.health == 0 or target.health == 10:
+            return
+
         if self.enemies_attacked[target] >= 3:
+            self.effect_played = True
             effect = Effect.HealEffect(2)
             if 3 <= game_state.level <= 6:
                 available_targets = game_state.get_available_targets_for_effect(effect, self)
@@ -155,17 +170,15 @@ class Ron(Player):
             elif game_state.level == 7:
                 game_state.apply_effect(effect, self, game_state.players)
 
-            self.effect_played = True
-
-    def handle_end_turn(self, game_state):
-        super().handle_end_turn(game_state)
+    def apply_end_turn_effect(self, game_state):
+        super().apply_end_turn_effect(game_state)
         self.enemies_attacked = {}
         self.effect_played = False
 
 
 class Hermione(Player):
     def __init__(self, deck):
-        super().__init__("Hermione Granger", deck)
+        super().__init__("Hermine Granger", deck)
         self.spell_played = 0
         self.effect_played = False
 
@@ -189,5 +202,5 @@ class Hermione(Player):
             elif game_state.level == 7:
                 game_state.apply_effect(effect, self, game_state.players)
 
-    def handle_end_turn(self, game_state):
-        pass
+    def apply_end_turn_effect(self, game_state):
+        self.effect_played = False

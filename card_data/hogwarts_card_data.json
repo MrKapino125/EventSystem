@@ -1,0 +1,110 @@
+[
+    {
+      "name": "Alohomora",
+      "type": "spell",
+      "cost": 0,
+      "level": 1,
+      "description": "Du bekommst 1 Münze.",
+      "effects": [
+        {"type": "give_coins", "amount": 1, "target": "self"}
+      ]
+    },
+    {
+      "name": "Pigwidgeon",
+      "type": "ally",
+      "cost": 0,
+      "level": 1,
+      "belonging": "Ron Weasley",
+      "description": "Wähle: Du bekommst 1 Blitz oder 2 Herzen.",
+      "effects": [
+        {
+            "type": "choice",
+            "num_effects": 1,
+            "options": [
+              {"type": "give_bolts", "amount": 1, "target": "self"},
+              {"type": "heal", "amount": 2, "target": "self"}                
+            ]
+        }
+      ]
+    },
+      {
+      "name": "Alraune",
+      "type": "object",
+      "cost": 0,
+      "level": 1,
+      "belonging": "Neville Longbottom",
+      "description": "Wähle: Du bekommst 1 Blitz oder EIN Held deiner Wahl bekommt 2 Herzen.",
+      "effects": [
+        {
+            "type": "choice",
+            "num_effects": 1,
+            "options": [
+              {"type": "give_bolts", "amount": 1, "target": "self"},
+              {"type": "heal", "target": "choice", "amount": 2, "num_targets": 1}
+            ]
+          }
+      ]
+    },
+    {
+      "name": "Diptam-Essenz",
+      "type": "object",
+      "cost": 2,
+      "level": 1,
+      "description": "Ein Held deiner Wahl bekommt 2 Herzen.",
+      "amount": 2,
+      "effects":[
+        {"type": "heal", "target": "choice", "amount": 2, "num_targets": 1}
+      ]
+    },
+    {
+      "name": "Albus Dumbledore",
+      "type": "ally",
+      "cost": 8,
+      "level": 1,
+      "description": "Alle Helden bekommen 1 Blitz, 1 Münze, 1 Herz, und ziehen eine Karte.",
+      "effects": [
+        {"type": "give_bolts", "amount": 1, "target": "all"},
+        {"type": "give_coins", "amount": 1, "target": "all"},
+        {"type": "heal", "amount": 1, "target": "all"},
+        {"type": "draw_cards", "amount": 1, "target": "all"}
+      ]
+    },
+    {
+      "name": "Reparo",
+      "type": "spell",
+      "cost": 3,
+      "level": 1,
+      "description": "Wähle: Du bekommst 2 Münzen oder ziehe eine Karte.",
+      "effects":[
+        {
+          "type": "choice",
+          "num_effects": 1,
+          "options": [
+            {"type": "give_coins", "amount": 2, "target": "self"},
+            {"type": "draw_cards", "amount": 1, "target": "self"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Incendio",
+      "type": "spell",
+      "cost": 4,
+      "level": 1,
+      "description": "Du bekommst 1 Blitz. Ziehe eine Karte.",
+      "effects": [
+        {"type": "give_bolts", "amount": 1, "target": "self"},
+        {"type": "draw_cards", "amount": 1, "target": "self"}
+      ]
+    },
+    {
+      "name": "Descendo",
+      "type": "spell",
+      "cost": 5,
+      "level": 1,
+      "description": "Du bekommst 2 Blitze",
+      "effects": [
+        {"type": "give_bolts", "amount": 2, "target": "self"}
+      ]
+    } 
+  ]

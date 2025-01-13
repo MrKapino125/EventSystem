@@ -30,5 +30,15 @@ class CoinGivenEvent(Event):
 
 
 class CardPlayedEvent(Event):
-    def __init__(self, source, card_data, amount=1):
-        super().__init__("card_played", {"source": source, "card_data": card_data, "amount": amount})
+    def __init__(self, source, card, amount=1):
+        super().__init__("card_played", {"source": source, "card": card, "amount": amount})
+
+
+class SkullPlacedEvent(Event):
+    def __init__(self, source, amount):
+        super().__init__("skull_placed", {"source": source, "amount": amount})
+
+
+class CardDroppedEvent(Event):
+    def __init__(self, source, target, card):
+        super().__init__("card_dropped", {"source": source, "target": target, "card": card})

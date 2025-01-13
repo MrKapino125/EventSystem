@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Winkelgasse",
+        "max_skulls": 4,
+        "dark_arts_cards": 1,
+        "level": 1,
+        "pos": 1
+    },
+    {
+        "name": "Spiegel Nerhegeb",
+        "max_skulls": 4,
+        "dark_arts_cards": 1,
+        "level": 1,
+        "pos": 2
+    }
+]

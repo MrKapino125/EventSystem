@@ -33,4 +33,5 @@ class OneBoltPerEnemyModifier(EffectModifier):
             return None  # Prevent the effect
         else:
             self.bolts_placed_this_turn[target] = True
+            effect.amount = 1
             return effect

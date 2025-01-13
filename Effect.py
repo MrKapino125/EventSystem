@@ -55,11 +55,11 @@ class GiveCoinsEffect(Effect):
 
 
 class CardPlayEffect(Effect):
-    def __init__(self, card_data):
-        self.card_data = card_data
+    def __init__(self, card):
+        self.card = card
 
     def apply(self, source, target, game_state):
-        game_state.event_handler.dispatch_event(Event.CardPlayedEvent(source, self.card_data))
+        game_state.event_handler.dispatch_event(Event.CardPlayedEvent(source, self.card))
 
 
 class ThrowGryffindorEffect:
