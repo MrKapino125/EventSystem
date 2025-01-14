@@ -1,4 +1,5 @@
 import random
+import pygame
 
 
 class Board:
@@ -12,10 +13,20 @@ class Board:
         self.shop_cards = []
         self.dark_arts_stack = dark_arts_cards
         self.dark_arts_dump = []
+        self.pos = (0, 0)
+        self.width = 1400
+        self.height = 1000
+
+    def tick(self):
+        pass
 
     def render(self, screen):
+        pygame.draw.rect(screen, (181, 101, 29), (self.pos[0], self.pos[1], self.width, self.height))
+
         for shop_card in self.shop_cards:
             shop_card.render(screen)
+        for enemy in self.open_enemies:
+            enemy.render(screen)
 
     def setup(self, level):
         random.shuffle(self.hogwarts_stack)

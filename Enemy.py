@@ -2,6 +2,7 @@ import json
 import Event
 import Effect
 import Card
+import pygame
 
 
 class Enemy:
@@ -12,9 +13,45 @@ class Enemy:
         self.stunned = False
         self.description = None
         self.reward_text = None
+        self.pos = (0, 0)
+        self.width = 500
+        self.height = 250
 
     def render(self, screen):
-        pass
+        fill_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, self.width, self.height))
+
+        screen.blit(fill_surface, (self.pos[0], self.pos[1]))
+
+        pygame.draw.rect(screen, (255, 0, 0), (self.pos[0], self.pos[1], self.width, self.height), 2)
+
+        text = self.name
+
+        font_size = 20
+        font = pygame.font.Font(None, font_size)
+        words = text.split()
+        lines = []
+        current_line = ""
+
+        for word in words:
+            test_line = current_line + word + " "
+            text_width, _ = font.size(test_line)
+            if text_width <= self.width - 10:  # Add a small padding
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word + " "
+        lines.append(current_line)  # Add the last line
+
+        y_offset = 0
+        line_spacing = 5  # spacing between lines
+        for line in lines:
+            text_surface = font.render(line, True, (255, 0, 0))
+            text_rect = text_surface.get_rect(center=(self.pos[0] + self.width // 2,
+                                                      self.pos[1] + self.height // 2 + y_offset - (len(lines) - 1) * (
+                                                                  font_size + line_spacing) // 2))  # vertical align
+            screen.blit(text_surface, text_rect)
+            y_offset += font_size + line_spacing
 
     def apply_effect(self, event, game_state):
         if self.stunned:

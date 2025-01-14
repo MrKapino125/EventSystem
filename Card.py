@@ -16,6 +16,17 @@ class Card:
     def play(self, source, game_state):
         pass
 
+    def is_hovering(self, mouse_pos):
+        mouse_x, mouse_y = mouse_pos
+        rect_x, rect_y = self.pos
+        rect_width, rect_height = self.width, self.height
+
+        if (rect_x <= mouse_x <= rect_x + rect_width and
+                rect_y <= mouse_y <= rect_y + rect_height):
+            return True
+        else:
+            return False
+
     def render(self, screen):
         fill_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, self.width, self.height))

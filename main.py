@@ -46,12 +46,17 @@ game_state.apply_effect(Effect.DamageEffect(5), None, [player1, player2])
 
 running = True
 while running:
+    clicked = False
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            clicked = True
 
     screen.fill((200, 200, 200))  # Light gray background
 
+    game_state.tick()
     game_state.render(screen)
 
     pygame.display.flip()
