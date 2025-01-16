@@ -3,22 +3,33 @@ import pygame
 
 
 class Board:
-    def __init__(self, hogwarts_cards, dark_arts_cards, enemies, places):
-        self.open_enemies = []
+    def __init__(self, hogwarts_cards, dark_arts_cards, enemies, places, players):
+        self.players = players
+
         self.enemy_stack = enemies
-        self.enemy_dump = []
-        self.places = places
-        self.active_place = None
         self.hogwarts_stack = hogwarts_cards
-        self.shop_cards = []
         self.dark_arts_stack = dark_arts_cards
+        self.places = places
+
+        self.shop_cards = []
+        self.open_enemies = []
+        self.hands = {}
+        self.active_place = None
+
+        self.enemy_dump = []
         self.dark_arts_dump = []
+
         self.pos = (0, 0)
         self.width = 0
         self.height = 0
 
-    def tick(self):
-        pass
+    def tick(self, game_state):
+        event_handler = game_state.event_handler
+
+        if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
+            for card in self.shop_cards:
+                if card.is_hovering(event_handler.mouse_pos):
+                    card.play(game_state.current_player, game_state)
 
     def render(self, screen):
         pygame.draw.rect(screen, (181, 101, 29), (self.pos[0], self.pos[1], self.width, self.height))
@@ -47,6 +58,10 @@ class Board:
             self.shop_cards.append(self.hogwarts_stack.pop())
 
         self.active_place = self.places.pop()
+
+        for player in self.players:
+            self.hands[player.name] = player.hand
+
 
     def reshuffle_dark_arts(self):
         if self.dark_arts_stack:

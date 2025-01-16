@@ -1,6 +1,6 @@
 class CardPositionManager:
-    def __init__(self, players, board):
-        self.players = players
+    def __init__(self, board):
+        self.players = board.players
         self.board = board
         self.board_x, self.board_y = board.pos
         self.board_width, self.board_height = self.board.width, self.board.height

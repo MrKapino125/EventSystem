@@ -4,12 +4,12 @@ from State import GameState
 
 
 class Player:
-    def __init__(self, name, deck):
+    def __init__(self, name):
         self.name = name
         self.health = 10
         self.coins = 0
         self.bolts = 0
-        self.deck = deck
+        self.deck = []
         self.hand = []
         self.discard_pile = []
 
@@ -77,8 +77,8 @@ class Player:
 
 
 class Harry(Player):
-    def __init__(self, deck):
-        super().__init__("Harry Potter", deck)
+    def __init__(self):
+        super().__init__("Harry Potter")
         self.effect_played = False
 
     def apply_hero_effect(self, event, game_state):
@@ -108,8 +108,8 @@ class Harry(Player):
 
 
 class Neville(Player):
-    def __init__(self, deck):
-        super().__init__("Neville Longbottom", deck)
+    def __init__(self):
+        super().__init__("Neville Longbottom")
         self.first_heal_given_this_turn = {}
         self.effect_played = False
 
@@ -136,8 +136,8 @@ class Neville(Player):
 
 
 class Ron(Player):
-    def __init__(self, deck):
-        super().__init__("Ron Weasley", deck)
+    def __init__(self):
+        super().__init__("Ron Weasley")
         self.enemies_attacked = {}
         self.effect_played = False
 
@@ -177,8 +177,8 @@ class Ron(Player):
 
 
 class Hermione(Player):
-    def __init__(self, deck):
-        super().__init__("Hermine Granger", deck)
+    def __init__(self):
+        super().__init__("Hermine Granger")
         self.spell_played = 0
         self.effect_played = False
 

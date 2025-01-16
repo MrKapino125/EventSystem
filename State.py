@@ -35,10 +35,10 @@ class GameState(State):
         self.init_decks()
         self.init_enemies()
 
-        self.board = Board.Board(self.hogwarts_cards, self.dark_arts_cards, self.enemies, self.place_cards)
+        self.board = Board.Board(self.hogwarts_cards, self.dark_arts_cards, self.enemies, self.place_cards, self.players)
         self.board.setup(level)
 
-        self.card_position_manager = CardPositionManager(self.players, self.board)
+        self.card_position_manager = CardPositionManager(self.board)
         self.card_position_manager.realign_board((0, 0), 1000, 800)
 
         self.valid_dice = []
@@ -46,7 +46,7 @@ class GameState(State):
             self.valid_dice = ["gryffindor", "hufflepuff", "ravenclaw", "slytherin"]
 
     def tick(self):
-        pass
+        self.board.tick(self)
 
     def render(self, screen):
         self.board.render(screen)
