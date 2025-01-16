@@ -1,14 +1,15 @@
 import json
 import Effect
 import pygame
+import re
 
 
 class Card:
     def __init__(self, data):
         self.data = data
         self.pos = (0, 0)
-        self.width = 100
-        self.height = 200
+        self.width = 0
+        self.height = 0
 
     def __repr__(self):
         return self.data["name"]
@@ -39,12 +40,15 @@ class Card:
 
         font_size = 20
         font = pygame.font.Font(None, font_size)
-        words = text.split()
+        words = re.split(r"([ -])", text)
         lines = []
         current_line = ""
 
         for word in words:
-            test_line = current_line + word + " "
+            if word == "-":
+                test_line = current_line[:-1] + word + " "
+            else:
+                test_line = current_line + word + " "
             text_width, _ = font.size(test_line)
             if text_width <= self.width - 10:  # Add a small padding
                 current_line = test_line

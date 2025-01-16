@@ -14,8 +14,8 @@ class Board:
         self.dark_arts_stack = dark_arts_cards
         self.dark_arts_dump = []
         self.pos = (0, 0)
-        self.width = 1400
-        self.height = 1000
+        self.width = 0
+        self.height = 0
 
     def tick(self):
         pass

@@ -39,7 +39,7 @@ class GameState(State):
         self.board.setup(level)
 
         self.card_position_manager = CardPositionManager(self.players, self.board)
-        self.card_position_manager.update()
+        self.card_position_manager.realign_board((0, 0), 1000, 800)
 
         self.valid_dice = []
         if self.level >= 4:
