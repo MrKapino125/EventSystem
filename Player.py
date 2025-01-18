@@ -13,6 +13,14 @@ class Player:
         self.hand = []
         self.discard_pile = []
 
+        self.pos = (0,0)
+        self.width = 0
+        self.height = 0
+
+    def render(self, screen):
+        # TODO render  deck, pile, hearts, coins, bolts
+        self.render_hand(screen)
+
     def render_hand(self, screen):
         for card in self.hand:
             card.render(screen)
@@ -20,9 +28,17 @@ class Player:
     def apply_hero_effect(self, event, game_state):
         pass
 
+    def play_card(self, card, game_state):
+        if card in self.hand:
+            self.hand.remove(card)
+            self.discard_pile.append(card)
+            card.play(self, game_state)
+
     def apply_end_turn_effect(self, game_state):
         self.coins = 0
         self.bolts = 0
+
+        self.draw_5()
 
     def apply_heal_effect(self, amount, game_state):
         self.heal(amount)
@@ -38,6 +54,10 @@ class Player:
 
     def apply_draw_card_effect(self, amount, game_state):
         for _ in range(amount):
+            self.draw_card()
+
+    def draw_5(self):
+        for _ in range(5):
             self.draw_card()
 
     def draw_card(self):
@@ -66,6 +86,9 @@ class Player:
         self.health -= amount
         if self.health <= 0:
             print(f"{self.name} has been defeated!")
+
+    def shuffle_deck(self):
+        random.shuffle(self.deck)
 
     def reshuffle_deck(self):
         if self.deck:

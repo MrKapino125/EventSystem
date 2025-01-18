@@ -42,3 +42,8 @@ class SkullPlacedEvent(Event):
 class CardDroppedEvent(Event):
     def __init__(self, source, target, card):
         super().__init__("card_dropped", {"source": source, "target": target, "card": card})
+
+
+class CardDrawnEvent(Event):
+    def __init__(self, source, target, amount):
+        super().__init__("card_drawn", {"source": source, "target": target, "amount": amount})

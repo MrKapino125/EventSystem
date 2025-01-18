@@ -5,6 +5,7 @@ import Eventhandler
 import EffectModifiers
 import Player
 import Board
+import pygame
 from CardPositionManager import CardPositionManager
 
 
@@ -20,12 +21,14 @@ class State:
 
 
 class GameState(State):
-    def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager):
+    def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager, screen_size):
         super().__init__(state_manager)
         self.event_handler = event_handler
         self.players_dict = players_dict
         self.players = list(players_dict.values())
         self.level = level
+        self.screen_size = screen_size
+
         self.active_modifiers = []
         self.current_player_idx = 0
         self.current_player = self.players[self.current_player_idx]
@@ -35,11 +38,11 @@ class GameState(State):
         self.init_decks()
         self.init_enemies()
 
-        self.board = Board.Board(self.hogwarts_cards, self.dark_arts_cards, self.enemies, self.place_cards, self.players)
+        self.board = Board.Board(self.hogwarts_cards, self.dark_arts_cards, self.enemies, self.place_cards, self.players, screen_size)
         self.board.setup(level)
 
-        self.card_position_manager = CardPositionManager(self.board)
-        self.card_position_manager.realign_board((0, 0), 1000, 800)
+        self.card_position_manager = CardPositionManager(self)
+        self.card_position_manager.realign_board((0, 0), 1100, 900)
 
         self.valid_dice = []
         if self.level >= 4:
@@ -51,15 +54,14 @@ class GameState(State):
     def render(self, screen):
         self.board.render(screen)
         for player in self.players:
-            player.render_hand(screen)
+            player.render(screen)
 
     def init_decks(self):
         remaining_cards = []
 
-        base_deck = [self.hogwarts_cards[0] for _ in range(7)]
-        self.hogwarts_cards.pop(0)
         for player in self.players:
-            player.deck = base_deck
+            player.deck = [Card.HogwartsCard(self.hogwarts_cards[0].data) for _ in range(7)]
+        self.hogwarts_cards.pop(0)
 
         for card in self.hogwarts_cards:
             belonging = card.data.get("belonging")
@@ -123,6 +125,13 @@ class GameState(State):
         for effect_data in card_data["effects"]:
             self._apply_card_effects(source, effect_data, card_data)
 
+    def handle_card_drawn_event(self, event):
+        source = event.data["source"]
+        target = event.data["target"]
+        amount = event.data["amount"]
+
+        target.apply_draw_card_effect(amount, self)
+
     def handle_heal_event(self, event):
         source = event.data['source']
         target = event.data['target']
@@ -144,8 +153,8 @@ class GameState(State):
         source = event.data['source']
         amount = event.data['amount']
 
-        if "Harry Potter" in self.existing_players:
-            self.existing_players["Harry Potter"].apply_hero_effect(event, self)
+        if "Harry Potter" in self.players_dict:
+            self.players_dict["Harry Potter"].apply_hero_effect(event, self)
 
         #remove skull from place
 
@@ -194,6 +203,8 @@ class GameState(State):
             effect = Effect.GiveBoltEffect(effect_data["amount"])
         elif effect_type == "damage":
             effect = Effect.DamageEffect(effect_data["amount"])
+        elif effect_type == "draw_cards":
+            effect = Effect.DrawCardEffect(effect_data["amount"])
         elif effect_type == "throw_dice":
             dice_type = effect_data["dice_type"]
             if effect_data["dice_type"] == "choice":

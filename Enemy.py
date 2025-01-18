@@ -6,13 +6,13 @@ import pygame
 
 
 class Enemy:
-    def __init__(self, name, health, level):
+    def __init__(self, name, health, level, description, reward_text):
         self.name = name
         self.health = health
         self.level = level
         self.stunned = False
-        self.description = None
-        self.reward_text = None
+        self.description = description
+        self.reward_text = reward_text
         self.pos = (0, 0)
         self.width = 500
         self.height = 250
@@ -53,6 +53,17 @@ class Enemy:
             screen.blit(text_surface, text_rect)
             y_offset += font_size + line_spacing
 
+    def is_hovering(self, mouse_pos):
+        mouse_x, mouse_y = mouse_pos
+        rect_x, rect_y = self.pos
+        rect_width, rect_height = self.width, self.height
+
+        if (rect_x <= mouse_x <= rect_x + rect_width and
+                rect_y <= mouse_y <= rect_y + rect_height):
+            return True
+        else:
+            return False
+
     def apply_effect(self, event, game_state):
         if self.stunned:
             print(f"{self.name} is stunned")
@@ -75,7 +86,9 @@ class Enemy:
 
 class Draco(Enemy):
     def __init__(self):
-        super().__init__('Draco Malfoy', 6, 1)
+        super().__init__('Draco Malfoy', 6, 1,
+                         "Jedes Mal, wenn Totenköpfe auf den Ort gelegt werden verliert der aktive Held 2 Herzen.",
+                         "Entfernt 1 Totenkopf vom aktuellen Ort.")
 
     def _execute_passive(self, event, game_state):
         if not isinstance(event, Event.SkullPlacedEvent):
@@ -90,7 +103,10 @@ class Draco(Enemy):
 
 class CrabbeGoyle(Enemy):
     def __init__(self):
-        super().__init__("Crabbe & Goyle", 5, 1)
+        super().__init__("Crabbe & Goyle", 5, 1,
+                         "Jedes Mal, wenn ein Held durch eine Dunkle-Künste-Karte oder einen "
+                         "Bösewicht eine Karte abwerfen muss, verliert dieser Held 1 Herz.",
+                         "ALLE Helden ziehen eine Karte.")
 
     def _execute_passive(self, event, game_state):
         if not isinstance(event, Event.CardDroppedEvent):
@@ -110,7 +126,9 @@ class CrabbeGoyle(Enemy):
 
 class Quirrell(Enemy):
     def __init__(self):
-        super().__init__("Quirinus Quirrell", 6, 1)
+        super().__init__("Quirinus Quirrell", 6, 1,
+                         "Der aktive Held verliert 1 Herz.",
+                         "Alle Helden bekommen 1 Münze und 1 Herz.")
 
     def _execute_active(self, event, game_state):
         game_state.apply_effect(Effect.DamageEffect(1), self, game_state.current_player)

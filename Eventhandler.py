@@ -10,6 +10,10 @@ class EventHandler:
         self.is_clicked_lock = self.is_clicked.copy()
 
     def tick(self):
+        for mouse_button in self.is_clicked:
+            if self.is_clicked[mouse_button]:
+                self.is_clicked_lock[mouse_button] = True
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -17,18 +21,13 @@ class EventHandler:
 
             if event.type == pygame.MOUSEMOTION:
                 self.mouse_pos = event.pos
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    if self.is_clicked["left"]:
-                        self.is_clicked_lock["left"] = True
                     self.is_clicked["left"] = True
                 if event.button == 2:
-                    if self.is_clicked["middle"]:
-                        self.is_clicked_lock["middle"] = True
                     self.is_clicked["middle"] = True
                 if event.button == 3:
-                    if self.is_clicked["right"]:
-                        self.is_clicked_lock["right"] = True
                     self.is_clicked["right"] = True
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:

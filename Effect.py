@@ -27,7 +27,7 @@ class DrawCardEffect(Effect):
         self.amount = amount
 
     def apply(self, source, target, game_state):
-        pass
+        game_state.event_handler.dispatch_event(Event.CardDrawnEvent(source, target, self.amount))
 
 
 class GiveBoltEffect(Effect):
@@ -55,11 +55,12 @@ class GiveCoinsEffect(Effect):
 
 
 class CardPlayEffect(Effect):
-    def __init__(self, card):
+    def __init__(self, card, amount=1):
         self.card = card
+        self.amount = amount
 
     def apply(self, source, target, game_state):
-        game_state.event_handler.dispatch_event(Event.CardPlayedEvent(source, self.card))
+        game_state.event_handler.dispatch_event(Event.CardPlayedEvent(source, self.card, self.amount))
 
 
 class ThrowGryffindorEffect:
