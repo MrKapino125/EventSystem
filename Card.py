@@ -28,13 +28,20 @@ class Card:
         else:
             return False
 
-    def render(self, screen):
-        fill_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, self.width, self.height))
+    def render(self, screen, pos=None, width=None, height=None):
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
 
-        screen.blit(fill_surface, (self.pos[0], self.pos[1]))
+        fill_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, width, height))
 
-        pygame.draw.rect(screen, (255, 0, 0), (self.pos[0], self.pos[1], self.width, self.height), 2)
+        screen.blit(fill_surface, (pos[0], pos[1]))
+
+        pygame.draw.rect(screen, (255, 0, 0), (pos[0], pos[1], width, height), 2)
 
         text = self.data["name"]
 
@@ -50,7 +57,7 @@ class Card:
             else:
                 test_line = current_line + word + " "
             text_width, _ = font.size(test_line)
-            if text_width <= self.width - 10:  # Add a small padding
+            if text_width <= width - 10:  # Add a small padding
                 current_line = test_line
             else:
                 lines.append(current_line)
@@ -61,7 +68,7 @@ class Card:
         line_spacing = 5  # spacing between lines
         for line in lines:
             text_surface = font.render(line, True, (255,0,0))
-            text_rect = text_surface.get_rect(center=(self.pos[0] + self.width // 2, self.pos[1] + self.height // 2 + y_offset - (len(lines) - 1) * (font_size + line_spacing) // 2))  # vertical align
+            text_rect = text_surface.get_rect(center=(pos[0] + width // 2, pos[1] + height // 2 + y_offset - (len(lines) - 1) * (font_size + line_spacing) // 2))  # vertical align
             screen.blit(text_surface, text_rect)
             y_offset += font_size + line_spacing
 

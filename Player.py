@@ -1,19 +1,22 @@
 import random
 import Effect
 from State import GameState
+import Deck
+import pygame
 
 
 class Player:
     def __init__(self, name):
         self.name = name
+        self.names = self.name.split(" ")
         self.health = 10
         self.coins = 0
         self.bolts = 0
-        self.deck = []
+        self.deck = Deck.Deck()
         self.hand = []
-        self.discard_pile = []
+        self.discard_pile = Deck.DiscardPile()
 
-        self.pos = (0,0)
+        self.pos = (0, 0)
         self.width = 0
         self.height = 0
 
@@ -21,9 +24,55 @@ class Player:
         # TODO render  deck, pile, hearts, coins, bolts
         self.render_hand(screen)
 
+        self.render_deck(screen)
+        self.render_discard_pile(screen)
+        self.render_stats(screen)
+
     def render_hand(self, screen):
         for card in self.hand:
             card.render(screen)
+
+    def render_deck(self, screen):
+        self.deck.render(screen)
+
+    def render_discard_pile(self, screen):
+        self.discard_pile.render(screen)
+
+    def render_stats(self, screen):
+        self.render_circles(screen, self.pos, self.names[0][0] + self.names[1][0], self.health)
+        self.render_circles(screen, (self.pos[0] + 7 * self.width / 8, self.pos[1]), self.coins, self.bolts)
+
+    def render_circles(self, screen, pos, num1, num2):
+        width, height = self.width / 8, self.height
+        x, y = pos[0], pos[1]
+
+        # Calculate padding
+        padding = width / 32
+
+        # Calculate available width for circles
+        available_width = width - 3 * padding  # 3 paddings: left, between circles, right
+
+        # Calculate circle diameter (and radius)
+        circle_diameter = min(available_width / 2, height - 2 * padding)
+        circle_radius = circle_diameter / 2
+
+        # Calculate circle centers
+        left_circle_center = (x + padding + circle_radius, y + padding + circle_radius)
+        right_circle_center = (x + 2 * padding + 3 * circle_radius, y + padding + circle_radius)
+
+        # Draw the circles
+        pygame.draw.circle(screen, (255, 0, 0), left_circle_center, circle_radius, 2)
+        pygame.draw.circle(screen, (255, 0, 0), right_circle_center, circle_radius, 2)
+
+        font = pygame.font.Font(None, int(circle_radius))
+
+        self.render_centered_text(screen, str(num1), font, (0, 0, 0), left_circle_center)
+        self.render_centered_text(screen, str(num2), font, (0, 0, 0), right_circle_center)
+
+    def render_centered_text(self, screen, text, font, color, center):
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect(center=center)
+        screen.blit(text_surface, text_rect)
 
     def apply_hero_effect(self, event, game_state):
         pass
@@ -94,8 +143,8 @@ class Player:
         if self.deck:
             raise Exception("Deck not empty, no shuffle needed!")
         if self.discard_pile:
-            self.deck = self.discard_pile[:]  # Create a copy to avoid modifying the original discard pile
-            self.discard_pile = []
+            self.deck.extend(self.discard_pile)  # Add all elements from the discard pile to the deck
+            self.discard_pile.clear()  # Clear the discard pile
             random.shuffle(self.deck)
 
 
@@ -226,4 +275,5 @@ class Hermione(Player):
                 game_state.apply_effect(effect, self, game_state.players)
 
     def apply_end_turn_effect(self, game_state):
+        super().apply_end_turn_effect(game_state)
         self.effect_played = False

@@ -34,6 +34,7 @@ class GameState(State):
         self.current_player = self.players[self.current_player_idx]
         self.hogwarts_cards, self.place_cards, self.dark_arts_cards = Card.load_cards(level)
         self.enemies = []
+        self.dark_arts_cards_left = 0
 
         self.init_decks()
         self.init_enemies()
@@ -49,6 +50,9 @@ class GameState(State):
             self.valid_dice = ["gryffindor", "hufflepuff", "ravenclaw", "slytherin"]
 
     def tick(self):
+        if len(self.current_player.hand) == 0:
+            self.end_turn()
+
         self.board.tick(self)
 
     def render(self, screen):
@@ -60,7 +64,9 @@ class GameState(State):
         remaining_cards = []
 
         for player in self.players:
-            player.deck = [Card.HogwartsCard(self.hogwarts_cards[0].data) for _ in range(7)]
+            player_deck = [Card.HogwartsCard(self.hogwarts_cards[0].data) for _ in range(7)]
+            for card in player_deck:
+                player.deck.append(card)
         self.hogwarts_cards.pop(0)
 
         for card in self.hogwarts_cards:
@@ -76,17 +82,24 @@ class GameState(State):
         if self.level >= 1:
             self.enemies += [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Quirrell()]
 
-    def start_turn(self, player):
-        self.current_player = player
+    def start_turn(self):
+        self.dark_arts_cards_left = self.board.active_place.data['dark_arts_cards']
+        for enemy in self.board.open_enemies:
+            if isinstance(enemy, Enemy.Bellatrix):
+                self.dark_arts_cards_left += 1
 
-        dark_arts_cards = self.board.active_place.data['dark_arts_cards']
-        for _ in range(dark_arts_cards):
-            dark_arts_card = self.board.dark_arts_stack.pop()
-            dark_arts_card.play()
-            self.board.dark_arts_stack.append(dark_arts_card)
+        while self.dark_arts_cards_left > 0:
+            self.board.play_dark_arts()
+            self.dark_arts_cards_left -= 1
 
-    def end_turn(self, player):
-        pass
+    def end_turn(self):
+        self.current_player.apply_end_turn_effect(self)
+        print(self.current_player.hand)
+        self.current_player_idx += 1
+        self.current_player_idx %= len(self.players)
+        self.current_player = self.players[self.current_player_idx]
+
+        self.card_position_manager.update()
 
     def add_modifier(self, modifier):
         self.active_modifiers.append(modifier)
@@ -121,6 +134,28 @@ class GameState(State):
 
         if isinstance(self.current_player, Player.Hermione) and isinstance(card, Card.HogwartsCard):
             self.current_player.apply_hero_effect(event, self)
+
+        for effect_data in card_data["effects"]:
+            self._apply_card_effects(source, effect_data, card_data)
+
+    def handle_hogwarts_card_played_event(self, event):
+        source = event.data["source"]
+        card = event.data["card"]
+        card_data = card.data
+
+        if isinstance(self.current_player, Player.Hermione):
+            self.current_player.apply_hero_effect(event, self)
+
+        for effect_data in card_data["effects"]:
+            self._apply_card_effects(source, effect_data, card_data)
+
+    def handle_dark_arts_card_played_event(self, event):
+        source = event.data["source"]
+        card = event.data["card"]
+        card_data = card.data
+
+        if card.data.get("is_unforgivable", False):
+            self.dark_arts_cards_left += 1
 
         for effect_data in card_data["effects"]:
             self._apply_card_effects(source, effect_data, card_data)

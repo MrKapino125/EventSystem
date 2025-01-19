@@ -47,6 +47,11 @@ class CardPositionManager:
             player.width = player_width
             player.height = player_height
 
+            player.deck.width = card.width
+            player.deck.height = card.height
+            player.discard_pile.width = card.width
+            player.discard_pile.height = card.height
+
         self.update()
 
     def align_enemies(self):
@@ -81,14 +86,19 @@ class CardPositionManager:
 
     def align_players(self):
         players = self.game_state.players
-        current_player_idx = self.game_state.current_player_idx
 
-        for i in range(4):
-            player = players[(current_player_idx + i) % 4]
+        for i, player in enumerate(players):
             player_x = self.board_x + self.board_width
             player_y = i * player.height
 
             player.pos = player_x, player_y
+
+            deck_x = player_x + (player.width / 8 - self.card_width) // 2
+            deck_y = player_y + player.height - self.card_height
+            player.deck.pos = deck_x, deck_y
+
+            discard_pile_x = player_x + 7 * player.width / 8 + (player.width / 8 - self.card_width) // 2
+            player.discard_pile.pos = discard_pile_x, deck_y
 
         self.align_hands()
 
@@ -101,7 +111,8 @@ class CardPositionManager:
 
             self.align_hand(player)
 
-        #print(hands_in_order[0][0].pos[0] - self.board_width, self.game_state.screen_size[0] - (hands_in_order[0][4].pos[0] + hands_in_order[0][4].width))
+        #print(self.players[0].hand[0].pos[0] - self.board_width, self.game_state.screen_size[0] - (self.players[0].hand[4].pos[0] + self.players[0].hand[4].width))
+        #print((self.players[0].hand[0].pos[0] - self.board_width) / self.players[0].width)
 
     def align_hand(self, player):
         hand = player.hand

@@ -138,6 +138,10 @@ class Quirrell(Enemy):
         pass
 
 
+class Bellatrix(Enemy):
+    pass
+
+
 def load_enemies(level):
     with open("enemies.json", "r", encoding="UTF-8") as f:
         enemies = []

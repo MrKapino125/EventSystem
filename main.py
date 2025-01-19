@@ -9,10 +9,11 @@ import pygame
 
 pygame.init()
 
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
+info = pygame.display.Info()
+SCREEN_WIDTH = info.current_w
+SCREEN_HEIGHT = info.current_h
 
-SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption("Harry Potter: Kampf um Hogwarts!")
 
 state_manager = State.StateManager()
@@ -40,7 +41,6 @@ event_handler.register_listener("card_played", game_state.handle_card_played_eve
 event_handler.register_listener("card_drawn", game_state.handle_card_drawn_event)
 
 # Dispatch a damage event
-game_state.apply_effect(Effect.DamageEffect(5), None, [player1, player2])
 
 
 def tick():

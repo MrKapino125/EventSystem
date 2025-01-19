@@ -158,6 +158,14 @@ class Board:
             player.shuffle_deck()
             player.draw_5()
 
+    def play_dark_arts(self):
+        if not self.dark_arts_stack:
+            self.reshuffle_dark_arts()
+
+        dark_arts_card = self.dark_arts_stack.pop()
+        dark_arts_card.play()
+        self.dark_arts_stack.append(dark_arts_card)
+
     def reshuffle_dark_arts(self):
         if self.dark_arts_stack:
             raise Exception("Dark Arts Deck not empty, no shuffle needed!")
