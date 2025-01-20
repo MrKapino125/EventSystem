@@ -1,6 +1,6 @@
 [
     {
-        "name": "Obliviate!",
+        "name": "OBLIVIATE!",
         "level": 2,
         "description": "ALLE Helden wählen: Wirf einen Spruch ab oder du verlierst 2 Herzen",
         "effects": [
@@ -8,12 +8,49 @@
                 "type": "choice",
                 "choice_targets": "all",
                 "num_effects": 1,
-                "modifier": null,
                 "options": [
                     {"type": "drop_cards", "card_type": "spell", "amount": 1, "target": "self"},
                     {"type": "damage", "amount": 2, "target": "self"}
                 ]
             }
+        ]
+    },
+    {
+        "name": "FLIPENDO!",
+        "level": 1,
+        "description": "Der aktive Held verleirt 1 Herz und muss 1 Karte abwerfen",
+        "amount": 2,
+        "effects": [
+          {"type": "damage", "amount": 1, "target": "self"},
+          {"type": "drop_cards", "amount": 1, "target": "self"}
+        ]
+    },
+    {
+        "name": "GANZKÖRPERKLAMMER",
+        "level": 1,
+        "description": "ALLE Helden verlieren 1 Herz und können in diesem Zug keine zusätzlichen Karten ziehen.",
+        "amount": 2,
+        "modifier": "no_draw",
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "all"}
+        ]
+    },
+    {
+        "name": "ER, DESSEN NAME NICHT GENANNT WERDEN DARF",
+        "level": 1,
+        "description": "Fügt 1 Totenkopf zum aktuellen Ort hinzu.",
+        "amount": 3,
+        "effects": [
+            {"type": "place_skulls", "amount": 1}
+        ]
+    },
+    {
+        "name": "EXPULSO!",
+        "level": 1,
+        "description": "Der aktive Held verliert 2 Herzen.",
+        "amount": 3,
+        "effects": [
+            {"type": "damage", "amount": 2, "target": "self"}
         ]
     }
 ]

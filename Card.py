@@ -17,6 +17,12 @@ class Card:
     def play(self, source, game_state):
         pass
 
+    def drop(self, source, game_state):
+        pass
+
+    def select(self, game_state):
+        pass
+
     def is_hovering(self, mouse_pos):
         mouse_x, mouse_y = mouse_pos
         rect_x, rect_y = self.pos
@@ -48,22 +54,54 @@ class Card:
         font_size = 20
         font = pygame.font.Font(None, font_size)
         words = re.split(r"([ -])", text)
-        lines = []
-        current_line = ""
+        words = [word for word in words if word != " "]
 
-        for word in words:
-            if word == "-":
-                test_line = current_line[:-1] + word + " "
-            else:
-                test_line = current_line + word + " "
-            text_width, _ = font.size(test_line)
-            if text_width <= width - 10:  # Add a small padding
-                current_line = test_line
-            else:
-                lines.append(current_line)
-                current_line = word + " "
-        lines.append(current_line)  # Add the last line
+        def check_length(word):
+            counter = 1
+            while counter <= len(word):
+                new_word = word[:len(word) - counter]
+                text_width, _ = font.size(new_word)
+                if text_width <= width - 10:
+                    return new_word, word[len(word) - counter:]
+                counter += 1
+            return "", word  # Return empty string if no suitable split can be found
 
+        def get_lines(words):
+            lines = []
+            current_line = ""
+
+            i = 0
+            while i < len(words):  # Use while loop with index for correct list manipulation
+                word = words[i]
+                if word == "-":
+                    test_line = current_line[:-1] + word + " "
+                else:
+                    test_line = current_line + word + " "
+                text_width, _ = font.size(test_line)
+
+                if text_width <= width - 10:
+                    current_line = test_line
+                    i += 1  # Increment only if we add the word
+                else:
+                    word_width, _ = font.size(word)
+                    if word_width > width - 10:  # Only split words that are too long on their own
+                        new_word, new_word_end = check_length(word)
+                        if new_word != "":  # Check if a split was possible
+                            words[i] = new_word  # Replace the word with the first part
+                            words.insert(i + 1, new_word_end)  # Insert the second part after
+                        else:
+                            lines.append(current_line)
+                            current_line = ""
+                            i += 1
+                    else:
+                        lines.append(current_line)
+                        current_line = word + " "
+                        i += 1
+
+            lines.append(current_line)
+            return lines
+
+        lines = get_lines(words)
         y_offset = 0
         line_spacing = 5  # spacing between lines
         for line in lines:
@@ -94,6 +132,26 @@ class PlaceCard(Card):
         super().__init__(data)
         self.skulls = 0
         self.max_skulls = self.data["max_skulls"]
+
+    def render(self, screen, pos=None, width=None, height=None):
+        super().render(screen)
+
+        font = pygame.font.Font(None, 20)
+
+        skulls_surface = font.render(f"{self.skulls} / {self.max_skulls}", True, (255, 0, 0))
+        skulls_width = skulls_surface.get_width()
+        skulls_height = skulls_surface.get_height()
+
+        # Calculate the center x-coordinate of the box
+        center_x = self.pos[0] + self.width // 2
+
+        # Calculate the x-coordinate for centering the health surface
+        health_x = center_x - skulls_width // 2
+
+        # Calculate the y-coordinate just above the bottom line of the box
+        health_y = self.pos[1] + self.height - skulls_height - self.height // 16
+
+        screen.blit(skulls_surface, (health_x, health_y))
 
     def add_skulls(self, skulls):
         self.skulls += skulls
@@ -135,6 +193,8 @@ def load_place_cards(level):
             if card["level"] == level:
                 cards.append(PlaceCard(card))
 
+        cards.reverse()
+
         return cards
 
 
@@ -144,7 +204,9 @@ def load_dark_arts_cards(level):
         cards_dict = json.load(f)
         for card in cards_dict:
             if card["level"] <= level:
-                cards.append(DarkArtsCard(card))
+                for _ in range(card.get("amount", 1)):
+                    cards.append(DarkArtsCard(card))
 
+        return [card for card in cards if card.data["name"] == "FLIPENDO!"]
         return cards
 

@@ -38,14 +38,6 @@ class GiveBoltEffect(Effect):
         game_state.event_handler.dispatch_event(Event.BoltGivenEvent(source, target, self.amount))
 
 
-class PlaceBoltEffect(Effect):
-    def __init__(self, amount):
-        self.amount = amount
-
-    def apply(self, source, target, game_state):
-        pass
-
-
 class GiveCoinsEffect(Effect):
     def __init__(self, amount):
         self.amount = amount
@@ -61,6 +53,44 @@ class CardPlayEffect(Effect):
 
     def apply(self, source, target, game_state):
         game_state.event_handler.dispatch_event(Event.CardPlayedEvent(source, self.card, self.amount))
+
+
+class EnemyDeadEffect(Effect):
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.EnemyDeadEvent(source))
+
+
+class PlaceSkullEffect(Effect):
+    def __init__(self, amount):
+        self.amount = amount
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.SkullPlacedEvent(source, self.amount))
+
+
+class RemoveSkullEffect(Effect):
+    def __init__(self, amount):
+        self.amount = amount
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.SkullRemovedEvent(source, self.amount))
+
+
+class DropCardsEffect(Effect):
+    def __init__(self, amount, card_type):
+        self.amount = amount
+        self.card_type = card_type
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.CardDropEvent(source, target, self.amount, self.card_type))
+
+
+class DropCardEffect(Effect):
+    def __init__(self, card):
+        self.card = card
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.CardDroppedEvent(source, target, self.card))
 
 
 class ThrowGryffindorEffect:

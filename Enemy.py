@@ -11,6 +11,7 @@ class Enemy:
         self.health = health
         self.level = level
         self.stunned = False
+        self.is_dead = False
         self.description = description
         self.reward_text = reward_text
         self.pos = (0, 0)
@@ -53,6 +54,33 @@ class Enemy:
             screen.blit(text_surface, text_rect)
             y_offset += font_size + line_spacing
 
+        health_surface = font.render(str(self.health), True, (255, 0, 0))
+        health_width = health_surface.get_width()
+        health_height = health_surface.get_height()
+
+        # Calculate the center x-coordinate of the box
+        center_x = self.pos[0] + self.width // 2
+
+        # Calculate the x-coordinate for centering the health surface
+        health_x = center_x - health_width // 2
+
+        # Calculate the y-coordinate just above the bottom line of the box
+        health_y = self.pos[1] + self.height - health_height - self.height // 16
+
+        screen.blit(health_surface, (health_x, health_y))
+
+
+
+    def apply_damage_effect(self, amount, game_state):
+        self.damage()
+
+        if self.health <= 0:
+            self.is_dead = True
+            game_state.apply_effect(Effect.EnemyDeadEffect(), self, [None])
+
+    def damage(self):
+        self.health -= 1
+
     def is_hovering(self, mouse_pos):
         mouse_x, mouse_y = mouse_pos
         rect_x, rect_y = self.pos
@@ -70,17 +98,17 @@ class Enemy:
             return
 
         if event is None:
-            self._execute_active(event, game_state)
+            self._execute_active(game_state)
         else:
             self._execute_passive(event, game_state)
 
-    def _execute_active(self, event, game_state):
+    def _execute_active(self, game_state):
         pass
 
     def _execute_passive(self, event, game_state):
         pass
 
-    def apply_reward(self, event, game_state):
+    def apply_reward(self, game_state):
         pass
 
 
@@ -94,11 +122,10 @@ class Draco(Enemy):
         if not isinstance(event, Event.SkullPlacedEvent):
             return
 
-        game_state.apply_effect(Effect.DamageEffect(2), self, game_state.current_player)
+        game_state.apply_effect(Effect.DamageEffect(2), self, [game_state.current_player])
 
-    def apply_reward(self, event, game_state):
-        # TODO
-        pass
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
 
 
 class CrabbeGoyle(Enemy):
@@ -117,11 +144,10 @@ class CrabbeGoyle(Enemy):
         target = event_data["target"]
 
         if isinstance(source, Enemy) or isinstance(source, Card.DarkArtsCard):
-            game_state.apply_effect(Effect.DamageEffect(1), self, target)
+            game_state.apply_effect(Effect.DamageEffect(1), self, [target])
 
-    def apply_reward(self, event, game_state):
-        # TODO
-        pass
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.DrawCardEffect(1), self, game_state.players)
 
 
 class Quirrell(Enemy):
@@ -130,15 +156,19 @@ class Quirrell(Enemy):
                          "Der aktive Held verliert 1 Herz.",
                          "Alle Helden bekommen 1 Münze und 1 Herz.")
 
-    def _execute_active(self, event, game_state):
-        game_state.apply_effect(Effect.DamageEffect(1), self, game_state.current_player)
+    def _execute_active(self, game_state):
+        game_state.apply_effect(Effect.DamageEffect(1), self, [game_state.current_player])
 
-    def apply_reward(self, event, game_state):
-        # TODO
-        pass
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.GiveCoinsEffect(1), self, game_state.players)
+        game_state.apply_effect(Effect.HealEffect(1), self, game_state.players)
 
 
 class Bellatrix(Enemy):
+    pass
+
+
+class Todesser(Enemy):
     pass
 
 

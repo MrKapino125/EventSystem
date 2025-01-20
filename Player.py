@@ -1,5 +1,6 @@
 import random
 import Effect
+import Event
 from State import GameState
 import Deck
 import pygame
@@ -15,13 +16,13 @@ class Player:
         self.deck = Deck.Deck()
         self.hand = []
         self.discard_pile = Deck.DiscardPile()
+        self.is_dead = False
 
         self.pos = (0, 0)
         self.width = 0
         self.height = 0
 
     def render(self, screen):
-        # TODO render  deck, pile, hearts, coins, bolts
         self.render_hand(screen)
 
         self.render_deck(screen)
@@ -83,6 +84,15 @@ class Player:
             self.discard_pile.append(card)
             card.play(self, game_state)
 
+    def drop_card(self, card, game_state):
+        if card in self.hand:
+            self.hand.remove(card)
+            self.discard_pile.append(card)
+
+    def damage_enemy(self, enemy, game_state):
+        if self.bolts > 0:
+            game_state.apply_effect(Effect.DamageEffect(1), self, [enemy])
+
     def apply_end_turn_effect(self, game_state):
         self.coins = 0
         self.bolts = 0
@@ -93,7 +103,11 @@ class Player:
         self.heal(amount)
 
     def apply_damage_effect(self, amount, game_state):
+        if self.is_dead:
+            return
         self.take_damage(amount)
+        if self.is_dead:
+            game_state.event_handler.dispatch_event(Event.PlayerDeadEvent(self))
 
     def apply_give_bolts_effect(self, amount, game_state):
         self.give_bolts(amount)
@@ -104,6 +118,10 @@ class Player:
     def apply_draw_card_effect(self, amount, game_state):
         for _ in range(amount):
             self.draw_card()
+
+    def apply_drop_card_effect(self, event, game_state):
+        card = event.data["card"]
+        self.drop_card(card, game_state)
 
     def draw_5(self):
         for _ in range(5):
@@ -121,6 +139,9 @@ class Player:
         self.discard_pile.append(card)
 
     def heal(self, amount):
+        if self.is_dead:
+            return
+
         self.health += amount
         if self.health > 10:
             self.health = 10
@@ -134,7 +155,12 @@ class Player:
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
-            print(f"{self.name} has been defeated!")
+            self.is_dead = True
+
+    def die(self):
+        self.coins = 0
+        self.bolts = 0
+        # TODO: Implement drop cards
 
     def shuffle_deck(self):
         random.shuffle(self.deck)

@@ -2,15 +2,18 @@ import random
 import pygame
 import Enemy
 import Card
+import Deck
 
 
 class Board:
     def __init__(self, hogwarts_cards, dark_arts_cards, enemies, places, players, screen_size):
         self.players = players
 
-        self.enemy_stack = enemies
+        self.enemy_stack = Deck.Deck()
+        self.enemy_stack += enemies
         self.hogwarts_stack = hogwarts_cards
-        self.dark_arts_stack = dark_arts_cards
+        self.dark_arts_stack = Deck.Deck()
+        self.dark_arts_stack.extend(dark_arts_cards)
         self.places = places
 
         self.shop_cards = []
@@ -18,8 +21,8 @@ class Board:
         self.hands = {}
         self.active_place = None
 
-        self.enemy_dump = []
-        self.dark_arts_dump = []
+        self.enemy_dump = Deck.DiscardPile()
+        self.dark_arts_dump = Deck.DiscardPile()
 
         self.pos = (0, 0)
         self.width = 0
@@ -29,7 +32,7 @@ class Board:
         self.overlay_height = screen_size[1]
         self.overlay_rect = pygame.Rect(-self.overlay_width, 0, self.overlay_width, self.overlay_height)  # start offscreen
         self.overlay_target_x = 0
-        self.overlay_speed = 80  # Pixels per frame
+        self.overlay_speed = 5 * self.overlay_width / 16  # Pixels per frame
         self.text_visible = False
         self.text_delay_counter = 0
         self.text_delay = 1  # frames
@@ -37,17 +40,61 @@ class Board:
         self.font = pygame.font.Font(None, 36)
         self.is_hovering = False
 
+    def setup(self, level):
+        random.shuffle(self.hogwarts_stack)
+        random.shuffle(self.dark_arts_stack)
+        random.shuffle(self.enemy_stack)
+
+        if 1 <= level <= 2:
+            self.open_enemies.append(self.enemy_stack.pop())
+        elif 3 <= level <= 4:
+            self.open_enemies.append(self.enemy_stack.pop())
+            self.open_enemies.append(self.enemy_stack.pop())
+        elif 5 <= level:
+            self.open_enemies.append(self.enemy_stack.pop())
+            self.open_enemies.append(self.enemy_stack.pop())
+            self.open_enemies.append(self.enemy_stack.pop())
+
+        for _ in range(6):
+            self.shop_cards.append(self.hogwarts_stack.pop())
+
+        self.active_place = self.places.pop()
+
+        for player in self.players:
+            self.hands[player.name] = player.hand
+            player.shuffle_deck()
+            player.draw_5()
+
     def tick(self, game_state):
         event_handler = game_state.event_handler
 
-        if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
-            for card in game_state.current_player.hand:
-                if card.is_hovering(event_handler.mouse_pos):
-                    game_state.current_player.play_card(card, game_state)
-                    game_state.card_position_manager.align_hands()
-                    break
+        self.overlay_tick(game_state)
 
-        for card in self.shop_cards + [card for player in self.players for card in player.hand] + self.open_enemies:
+        if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
+            if self.is_hovering:
+                card = self.current_card
+                if isinstance(card, Card.HogwartsCard):
+                    if card in game_state.current_player.hand:
+                        game_state.current_player.play_card(card, game_state)
+                        game_state.card_position_manager.align_players()
+                elif isinstance(card, Enemy.Enemy):
+                    game_state.current_player.damage_enemy(card, game_state)
+
+    def select_tick(self, game_state):
+        event_handler = game_state.event_handler
+
+        self.overlay_tick(game_state)
+
+        if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
+            for selectable in game_state.current_selectables:
+                if selectable.is_hovering(event_handler.mouse_pos):
+                    game_state.selectors_selections[game_state.current_selector].append(selectable)
+                    game_state.current_selections_left -= 1
+
+    def overlay_tick(self, game_state):
+        event_handler = game_state.event_handler
+
+        for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump]:
             is_hovering = card.is_hovering(event_handler.mouse_pos)
 
             if is_hovering:
@@ -69,9 +116,16 @@ class Board:
                 self.overlay_rect.x = -self.overlay_width
                 self.text_visible = False
 
+
     def render(self, screen):
         pygame.draw.rect(screen, (181, 101, 29), (self.pos[0], self.pos[1], self.width, self.height))
 
+        self.enemy_stack.render(screen)
+        self.hogwarts_stack.render(screen)
+        self.active_place.render(screen)
+        self.dark_arts_stack.render(screen)
+        self.dark_arts_dump.render(screen)
+        self.enemy_dump.render(screen)
         for shop_card in self.shop_cards:
             shop_card.render(screen)
         for enemy in self.open_enemies:
@@ -96,6 +150,10 @@ class Board:
                 card_name = self.current_card.name
                 card_description = self.current_card.description
                 reward_text = self.current_card.reward_text
+            elif isinstance(self.current_card, Deck.DiscardPile) and len(self.current_card) > 0:
+                card = self.current_card[len(self.current_card) - 1]
+                card_name = card.data["name"]
+                card_description = card.data["description"]
             else:
                 card_name = ""
                 card_description = ""
@@ -133,43 +191,35 @@ class Board:
             surface.blit(text_surface, text_rect)
             y_offset += text_rect.height  # Move down for the next line
 
-    def setup(self, level):
-        random.shuffle(self.hogwarts_stack)
-        random.shuffle(self.dark_arts_stack)
-        random.shuffle(self.enemy_stack)
+    def draw_shop_cards(self):
+        if not self.hogwarts_stack:
+            return
 
-        if 1 <= level <= 2:
-            self.open_enemies.append(self.enemy_stack.pop())
-        elif 3 <= level <= 4:
-            self.open_enemies.append(self.enemy_stack.pop())
-            self.open_enemies.append(self.enemy_stack.pop())
-        elif 5 <= level:
-            self.open_enemies.append(self.enemy_stack.pop())
-            self.open_enemies.append(self.enemy_stack.pop())
-            self.open_enemies.append(self.enemy_stack.pop())
-
-        for _ in range(6):
+        while len(self.shop_cards) < 6:
             self.shop_cards.append(self.hogwarts_stack.pop())
 
-        self.active_place = self.places.pop()
+    def draw_enemies(self, amount):
+        for _ in range(amount):
+            self.draw_enemy()
 
-        for player in self.players:
-            self.hands[player.name] = player.hand
-            player.shuffle_deck()
-            player.draw_5()
+    def draw_enemy(self):
+        if not self.enemy_stack:
+            return
 
-    def play_dark_arts(self):
+        self.open_enemies.append(self.enemy_stack.pop())
+
+    def play_dark_arts(self, game_state):
         if not self.dark_arts_stack:
             self.reshuffle_dark_arts()
 
         dark_arts_card = self.dark_arts_stack.pop()
-        dark_arts_card.play()
-        self.dark_arts_stack.append(dark_arts_card)
+        dark_arts_card.play(None, game_state)
+        self.dark_arts_dump.append(dark_arts_card)
 
     def reshuffle_dark_arts(self):
         if self.dark_arts_stack:
             raise Exception("Dark Arts Deck not empty, no shuffle needed!")
 
-        self.dark_arts_stack = self.dark_arts_dump[:]  # Create a copy to avoid modifying the original discard pile
-        self.dark_arts_dump = []
+        self.dark_arts_stack.extend(self.dark_arts_dump)
+        self.dark_arts_dump.clear()
         random.shuffle(self.dark_arts_stack)

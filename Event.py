@@ -39,6 +39,16 @@ class SkullPlacedEvent(Event):
         super().__init__("skull_placed", {"source": source, "amount": amount})
 
 
+class SkullRemovedEvent(Event):
+    def __init__(self, source, amount):
+        super().__init__("skull_removed", {"source": source, "amount": amount})
+
+
+class CardDropEvent(Event):
+    def __init__(self, source, target, amount, card_type):
+        super().__init__("card_drop", {"source": source, "target": target, "amount": amount, card_type: card_type})
+
+
 class CardDroppedEvent(Event):
     def __init__(self, source, target, card):
         super().__init__("card_dropped", {"source": source, "target": target, "card": card})
@@ -47,3 +57,23 @@ class CardDroppedEvent(Event):
 class CardDrawnEvent(Event):
     def __init__(self, source, target, amount):
         super().__init__("card_drawn", {"source": source, "target": target, "amount": amount})
+
+
+class EnemyDeadEvent(Event):
+    def __init__(self, source):
+        super().__init__("enemy_dead", {"source": source})
+
+
+class EnemyDrawnEvent(Event):
+    def __init__(self):
+        super().__init__("enemy_drawn", {})
+
+
+class PlaceLostEvent(Event):
+    def __init__(self):
+        super().__init__("place_lost", {})
+
+
+class PlayerDeadEvent(Event):
+    def __init__(self, source):
+        super().__init__("player_dead", {"source": source})

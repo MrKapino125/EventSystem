@@ -6,6 +6,11 @@ import EffectModifiers
 import Card
 import sys
 import pygame
+import ctypes
+
+# DPI-Awareness setzen (VOR pygame.init() und pygame.display.set_mode())
+if hasattr(ctypes.windll.user32, 'SetProcessDPIAware'):
+    ctypes.windll.user32.SetProcessDPIAware()
 
 pygame.init()
 
@@ -13,7 +18,7 @@ info = pygame.display.Info()
 SCREEN_WIDTH = info.current_w
 SCREEN_HEIGHT = info.current_h
 
-SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+SCREEN = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 pygame.display.set_caption("Harry Potter: Kampf um Hogwarts!")
 
 state_manager = State.StateManager()
@@ -32,15 +37,6 @@ game_state = State.GameState(event_handler, dict(zip(players_keys, players)), 1,
 #cant heal in this turn
 #game_state.active_modifiers.append(EffectModifiers.CantHealModifier())
 # Register the event handler
-event_handler.register_listener("damage_taken", game_state.handle_damage_event)
-event_handler.register_listener("health_gained", game_state.handle_heal_event)
-event_handler.register_listener("bolt_given", game_state.handle_bolt_given_event)
-event_handler.register_listener("bolt_placed", game_state.handle_bolt_placed_event)
-event_handler.register_listener("coin_given", game_state.handle_coin_given_event)
-event_handler.register_listener("card_played", game_state.handle_card_played_event)
-event_handler.register_listener("card_drawn", game_state.handle_card_drawn_event)
-
-# Dispatch a damage event
 
 
 def tick():
