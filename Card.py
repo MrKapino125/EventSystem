@@ -11,6 +11,11 @@ class Card:
         self.width = 0
         self.height = 0
 
+        self.font_size = 18
+        self.font = pygame.font.SysFont('Arial', self.font_size)
+
+        self.lines = [self.data["name"]]
+
     def __repr__(self):
         return self.data["name"]
 
@@ -35,12 +40,16 @@ class Card:
             return False
 
     def render(self, screen, pos=None, width=None, height=None):
+        altered = True
         if pos is None:
             pos = self.pos
+            altered = False
         if width is None:
             width = self.width
+            altered = False
         if height is None:
             height = self.height
+            altered = False
 
         fill_surface = pygame.Surface((width, height), pygame.SRCALPHA)
         pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, width, height))
@@ -49,10 +58,31 @@ class Card:
 
         pygame.draw.rect(screen, (255, 0, 0), (pos[0], pos[1], width, height), 2)
 
+        if altered:
+            lines = self.generate_lines(pos, width, height)
+        else:
+            lines = self.lines
+
+        y_offset = 0
+        line_spacing = 5  # spacing between lines
+        for line in lines:
+            text_surface = self.font.render(line, True, (255,0,0))
+            text_rect = text_surface.get_rect(center=(pos[0] + width // 2, pos[1] + height // 2 + y_offset - (len(lines) - 1) * (self.font_size + line_spacing) // 2))  # vertical align
+            screen.blit(text_surface, text_rect)
+            y_offset += self.font_size + line_spacing
+
+    def generate_lines(self, pos=None, width=None, height=None):
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
+
         text = self.data["name"]
 
-        font_size = 20
-        font = pygame.font.Font(None, font_size)
+        self.font_size = 20
+        font = self.font
         words = re.split(r"([ -])", text)
         words = [word for word in words if word != " "]
 
@@ -101,14 +131,17 @@ class Card:
             lines.append(current_line)
             return lines
 
-        lines = get_lines(words)
-        y_offset = 0
-        line_spacing = 5  # spacing between lines
-        for line in lines:
-            text_surface = font.render(line, True, (255,0,0))
-            text_rect = text_surface.get_rect(center=(pos[0] + width // 2, pos[1] + height // 2 + y_offset - (len(lines) - 1) * (font_size + line_spacing) // 2))  # vertical align
-            screen.blit(text_surface, text_rect)
-            y_offset += font_size + line_spacing
+        return get_lines(words)
+
+    def render_select_overlay(self, screen):
+        green = (0, 255, 0)  # Green color
+        thickness = 4  # Outline thickness
+
+        # Create a rectangle for the outline
+        outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
+                                   self.width + 2 * thickness, self.height + 2 * thickness)
+
+        pygame.draw.rect(screen, green, outline_rect, thickness)
 
 
 class HogwartsCard(Card):
@@ -117,6 +150,33 @@ class HogwartsCard(Card):
 
     def play(self, source, game_state):
         game_state.apply_effect(Effect.CardPlayEffect(self), source, [game_state.current_player])
+
+    def render(self, screen, pos=None, width=None, height=None):
+        super().render(screen, pos, width, height)
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
+
+        cost = self.data["cost"]
+        if cost == 0:
+            return
+        cost_surface = self.font.render(str(cost), True, (255, 0, 0))
+        cost_width = cost_surface.get_width()
+        cost_height = cost_surface.get_height()
+
+        # Calculate the center x-coordinate of the box
+        center_x = pos[0] + width // 2
+
+        # Calculate the x-coordinate for centering the health surface
+        health_x = center_x - cost_width // 2
+
+        # Calculate the y-coordinate just above the bottom line of the box
+        health_y = pos[1] + height - cost_height - height // 16
+
+        screen.blit(cost_surface, (health_x, health_y))
 
 
 class DarkArtsCard(Card):
@@ -207,6 +267,6 @@ def load_dark_arts_cards(level):
                 for _ in range(card.get("amount", 1)):
                     cards.append(DarkArtsCard(card))
 
-        return [card for card in cards if card.data["name"] == "FLIPENDO!"]
+        #return [card for card in cards if card.data["name"] == "FLIPENDO!"]
         return cards
 

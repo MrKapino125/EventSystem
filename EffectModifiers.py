@@ -1,4 +1,5 @@
 import Effect
+import Enemy
 
 
 class EffectModifier:
@@ -25,7 +26,9 @@ class OneBoltPerEnemyModifier(EffectModifier):
         self.bolts_placed_this_turn = {}
 
     def modify(self, effect, game_state, source, target):
-        if not isinstance(effect, Effect.PlaceBoltEffect):
+        if not isinstance(effect, Effect.DamageEffect):
+            return effect
+        if not isinstance(target, Enemy.Enemy):
             return effect
 
         if target in self.bolts_placed_this_turn:
@@ -35,3 +38,8 @@ class OneBoltPerEnemyModifier(EffectModifier):
             self.bolts_placed_this_turn[target] = True
             effect.amount = 1
             return effect
+
+
+class BuyCardModifier(EffectModifier):
+    def __init__(self, card_type):
+        self.card_type = card_type

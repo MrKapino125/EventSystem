@@ -75,5 +75,10 @@ class PlaceLostEvent(Event):
 
 
 class PlayerDeadEvent(Event):
-    def __init__(self, source):
-        super().__init__("player_dead", {"source": source})
+    def __init__(self, source, target):
+        super().__init__("player_dead", {"source": source, "target": target})
+
+
+class BuyCardEvent(Event):
+    def __init__(self, source, card):
+        super().__init__("buy_card", {"source": source, "card": card})

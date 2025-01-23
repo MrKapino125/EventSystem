@@ -93,12 +93,18 @@ class CardPositionManager:
         self.dark_arts_stack.height = self.active_place.height
         self.dark_arts_dump.width = self.active_place.height
         self.dark_arts_dump.height = self.active_place.height
+        self.enemy_dump.width = self.enemy_width
+        self.enemy_dump.height = self.enemy_height
 
         dark_arts_stack_x = left_point + max_length // 3 - self.dark_arts_stack.width // 2
         dark_arts_dump_x = left_point + 2 * max_length // 3 - self.dark_arts_dump.width // 2
 
+        base_offset = self.enemy_width / 8
+        enemy_dump_x = self.enemy_stack.pos[0] + 2 * (self.enemy_width + base_offset)
+
         self.dark_arts_stack.pos = dark_arts_stack_x, self.active_place.pos[1]
         self.dark_arts_dump.pos = dark_arts_dump_x, self.active_place.pos[1]
+        self.enemy_dump.pos = enemy_dump_x, self.enemy_stack.pos[1]
 
         self.update()
 
@@ -113,6 +119,7 @@ class CardPositionManager:
             x = base_x + i * (enemy.width + base_offset)
             y = base_y
             enemy.pos = x, y
+            enemy.lines = enemy.generate_lines()
 
         enemy_stack_x = base_x
         enemy_stack_y = base_y - (self.enemy_height + self.board_height/8)
@@ -134,6 +141,7 @@ class CardPositionManager:
                 x = base_x + j * (self.card_width + base_offset)
                 y = base_y + i * (self.card_height + y_offset)
                 card.pos = (x, y)
+                card.lines = card.generate_lines()
 
                 count += 1
 
@@ -221,6 +229,7 @@ class CardPositionManager:
 
         for card in hand:
             card.pos = (current_x, y_level)
+            card.lines = card.generate_lines()
             current_x += card.width + (max_length / 64)  # Add card width and spacing
 
 

@@ -1,110 +1,1539 @@
 [
-    {
-      "name": "Alohomora",
-      "type": "spell",
-      "cost": 0,
-      "level": 1,
-      "description": "Du bekommst 1 Münze.",
-      "effects": [
-        {"type": "give_coins", "amount": 1, "target": "self"}
-      ]
-    },
-    {
-      "name": "Pigwidgeon",
-      "type": "ally",
-      "cost": 0,
-      "level": 1,
-      "belonging": "Ron Weasley",
-      "description": "Wähle: Du bekommst 1 Blitz oder 2 Herzen.",
-      "effects": [
-        {
-            "type": "choice",
-            "num_effects": 1,
-            "options": [
-              {"type": "give_bolts", "amount": 1, "target": "self"},
-              {"type": "heal", "amount": 2, "target": "self"}                
-            ]
-        }
-      ]
-    },
+  {
+    "name": "Alohomora!",
+    "type": "spell",
+    "cost": 0,
+    "level": 1,
+    "description": "Du bekommst 1 Münze.",
+    "effects": [
       {
-      "name": "Alraune",
-      "type": "object",
-      "cost": 0,
-      "level": 1,
-      "belonging": "Neville Longbottom",
-      "description": "Wähle: Du bekommst 1 Blitz oder EIN Held deiner Wahl bekommt 2 Herzen.",
-      "effects": [
-        {
-            "type": "choice",
-            "num_effects": 1,
-            "options": [
-              {"type": "give_bolts", "amount": 1, "target": "self"},
-              {"type": "heal", "target": "choice", "amount": 2, "num_targets": 1}
-            ]
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Pigwidgeon",
+    "type": "ally",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Ron Weasley",
+    "description": "Wähle: Du bekommst 1 Blitz oder 2 Herzen.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 1,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
           }
-      ]
-    },
-    {
-      "name": "Diptam-Essenz",
-      "type": "object",
-      "cost": 2,
-      "level": 1,
-      "description": "Ein Held deiner Wahl bekommt 2 Herzen.",
-      "amount": 2,
-      "effects":[
-        {"type": "heal", "target": "choice", "amount": 2, "num_targets": 1}
-      ]
-    },
-    {
-      "name": "Albus Dumbledore",
-      "type": "ally",
-      "cost": 8,
-      "level": 1,
-      "description": "Alle Helden bekommen 1 Blitz, 1 Münze, 1 Herz, und ziehen eine Karte.",
-      "effects": [
-        {"type": "give_bolts", "amount": 1, "target": "all"},
-        {"type": "give_coins", "amount": 1, "target": "all"},
-        {"type": "heal", "amount": 1, "target": "all"},
-        {"type": "draw_cards", "amount": 1, "target": "all"}
-      ]
-    },
-    {
-      "name": "Reparo",
-      "type": "spell",
-      "cost": 3,
-      "level": 1,
-      "description": "Wähle: Du bekommst 2 Münzen oder ziehe eine Karte.",
-      "effects":[
-        {
-          "type": "choice",
-          "num_effects": 1,
-          "options": [
-            {"type": "give_coins", "amount": 2, "target": "self"},
-            {"type": "draw_cards", "amount": 1, "target": "self"}
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Incendio",
-      "type": "spell",
-      "cost": 4,
-      "level": 1,
-      "description": "Du bekommst 1 Blitz. Ziehe eine Karte.",
-      "effects": [
-        {"type": "give_bolts", "amount": 1, "target": "self"},
-        {"type": "draw_cards", "amount": 1, "target": "self"}
-      ]
-    },
-    {
-      "name": "Descendo",
-      "type": "spell",
-      "cost": 5,
-      "level": 1,
-      "description": "Du bekommst 2 Blitze",
-      "effects": [
-        {"type": "give_bolts", "amount": 2, "target": "self"}
-      ]
-    } 
-  ]
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Alraune",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Neville Longbottom",
+    "description": "Wähle: Du bekommst 1 Blitz oder EIN Held deiner Wahl bekommt 2 Herzen.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 1,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "target": "choice",
+            "amount": 2,
+            "num_targets": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bertie Botts Bohnen jeder Geschmacksrichtung",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Ron Weasley",
+    "description": "Du bekommst 1 Münze. Für jeden in diesem Zug ausgespielten Verbündeten bekommst du 1 Blitz.",
+    "modifier": [
+      "ally_bolt"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Sauberwisch 11",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Ron Weasley",
+    "description": "Du bekommst 1 Blitz. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 1 Münze.",
+    "modifier": [
+      "first_enemy_kill_coin"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Tarnumhang",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Harry Potter",
+    "description": "Du bekommst 1 Münze. Wenn du diese Karte auf der Hand hast, kannst du nicht mehr als 1 Herz pro Dunkle-Künste-Karte oder Bösewicht verlieren.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Hedwig",
+    "type": "ally",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Harry Potter",
+    "description": "Wähle: Du bekommst 1 Blitz oder 2 Herzen.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 1,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Feuerblitz",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Harry Potter",
+    "description": "Du bekommst 1 Blitz. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 1 Münze.",
+    "modifier": [
+      "first_enemy_kill_coin"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Zeitumkehrer",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Hermine Granger",
+    "description": "Du bekommst 1 Münze. Du darfst Sprüche, die du in diesem Zug erworben hast, auf deinen Nachziehstapel anstatt auf den Ablagestapel legen.",
+    "modifier": [
+      "buy_spell"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Krummbein",
+    "type": "ally",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Hermine Granger",
+    "description": "Wähle: Du bekommst 1 Blitz oder 2 Herzen.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 1,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Die Märchen von Beedle, dem Barden",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Hermine Granger",
+    "description": "Wähle: Du bekommst 2 Münzen oder ALLE Helden bekommen 1 Münze.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_coins",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "give_coins",
+            "amount": 1,
+            "target": "all"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Erinnermich",
+    "type": "object",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Neville Longbottom",
+    "description": "Du bekommst 1 Münze. Wenn du diese Karte abwirfst, bekommst du 2 Münzen.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "drop_effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Trevor",
+    "type": "ally",
+    "cost": 0,
+    "level": 1,
+    "belonging": "Neville Longbottom",
+    "description": "Wähle: Du bekommst 1 Blitz oder 2 Herzen.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 1,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Diptam-Essenz",
+    "type": "object",
+    "cost": 2,
+    "level": 1,
+    "description": "Ein Held deiner Wahl bekommt 2 Herzen.",
+    "amount": 4,
+    "effects": [
+      {
+        "type": "heal",
+        "target": "choice",
+        "amount": 2,
+        "num_targets": 1
+      }
+    ]
+  },
+  {
+    "name": "Wingardium Leviosa!",
+    "type": "spell",
+    "cost": 2,
+    "level": 1,
+    "description": "Du bekommst 1 Münze. Du darfst Gegenstände, die du in diesem Zug erworben hast, auf deinen Nachziehstapel anstatt auf den Ablagestapel legen.",
+    "amount": 3,
+    "modifier": [
+      "buy_object"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Reparo!",
+    "type": "spell",
+    "cost": 3,
+    "level": 1,
+    "description": "Wähle: Du bekommst 2 Münzen oder ziehe eine Karte.",
+    "amount": 6,
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_coins",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "draw_cards",
+            "amount": 1,
+            "target": "self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Quidditch Ausrüstung",
+    "type": "object",
+    "cost": 3,
+    "level": 1,
+    "description": "Du bekommst 1 Blitz und 1 Herz.",
+    "amount": 4,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Oliver Wood",
+    "type": "ally",
+    "cost": 3,
+    "level": 1,
+    "description": "Du bekommst 1 Blitz. Wenn du einen Bösewicht besiegst, bekommt ein Held deiner Wahl zusätzlich 2 Herzen.",
+    "modifier": [
+      "first_enemy_kill_heal"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Incendio!",
+    "type": "spell",
+    "cost": 4,
+    "level": 1,
+    "description": "Du bekommst 1 Blitz. Ziehe eine Karte.",
+    "amount": 4,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Lumos!",
+    "type": "spell",
+    "cost": 4,
+    "level": 1,
+    "description": "ALLE Helden ziehen eine Karte.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Der sprechende Hut",
+    "type": "object",
+    "cost": 4,
+    "level": 1,
+    "description": "Du bekommst 2 Münzen. Du darfst Verbündete, die du in diesem Zug erworben hast, auf deinen Nachziehstapel anstatt auf den Ablagestapel legen.",
+    "modifier": [
+      "buy_ally"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Rubeus Hagrid",
+    "type": "ally",
+    "cost": 4,
+    "level": 1,
+    "description": "Du bekommst 1 Blitz. ALLE Helden bekommen 1 Herz.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Descendo!",
+    "type": "spell",
+    "cost": 5,
+    "level": 1,
+    "description": "Du bekommst 2 Blitze",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Goldener Schnatz",
+    "type": "object",
+    "cost": 5,
+    "level": 1,
+    "description": "Du bekommst 2 Münzen. Ziehe eine Karte.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Albus Dumbledore",
+    "type": "ally",
+    "cost": 8,
+    "level": 1,
+    "description": "Alle Helden bekommen 1 Blitz, 1 Münze, 1 Herz, und ziehen eine Karte.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "all"
+      },
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "all"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "all"
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Gilderoy Lockhart",
+    "type": "ally",
+    "cost": 2,
+    "level": 2,
+    "description": "Ziehe eine Karte und wirf dann eine Handkarte deiner Wahl ab. Wenn du diese Karte abwirfst, ziehe eine Karte.",
+    "effects": [
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "drop_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "drop_effects": [
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Vielsafttrank",
+    "type": "object",
+    "cost": 3,
+    "level": 2,
+    "description": "Wähle einen Verbündeten, den du in diesem Zug schon ausgespielt hast. Du darfst die Effekte dieses Verbündeten erneut spielen.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "reuse_ally",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Finite Incantatem!",
+    "type": "spell",
+    "cost": 3,
+    "level": 2,
+    "description": "Entferne 1 Totenkopf vom aktuellen Ort.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "remove_skulls",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "name": "Ginny Weasley",
+    "type": "ally",
+    "cost": 4,
+    "level": 2,
+    "description": "Du bekommst 1 Blitz und 1 Münze.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Dobby der Hauself",
+    "type": "ally",
+    "cost": 4,
+    "level": 2,
+    "description": "Entferne 1 Totenkopf vom aktuellen Ort. Ziehe eine Karte.",
+    "effects": [
+      {
+        "type": "remove_skulls",
+        "amount": 1
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Fawkes der Phönix",
+    "type": "ally",
+    "cost": 5,
+    "level": 2,
+    "description": "Wähle: Du bekommst 2 Blitze oder ALLE Helden bekommen 2 Herzen.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 2,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Nimbus Zweitausendeins",
+    "type": "object",
+    "cost": 5,
+    "level": 2,
+    "description": "Du bekommst 2 Blitze. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 2 Münzen.",
+    "amount": 2,
+    "modifier": [
+      "enemy_kill_coin",
+      "enemy_kill_coin"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Arthur Weasley",
+    "type": "ally",
+    "cost": 6,
+    "level": 2,
+    "description": "ALLE Helden bekommen 2 Münzen.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Expelliarmus!",
+    "type": "spell",
+    "cost": 6,
+    "level": 2,
+    "description": "Du bekommst 2 Blitze. Ziehe eine Karte.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Molly Weasley",
+    "type": "ally",
+    "cost": 6,
+    "level": 2,
+    "description": "ALLE Helden bekommen 1 Münze und 2 Herzen.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "all"
+      },
+      {
+        "type": "heal",
+        "amount": 2,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Schokofrosch",
+    "type": "object",
+    "cost": 2,
+    "level": 3,
+    "description": "Ein Held deiner Wahl bekommt 1 Münze und 1 Herz. Wenn du diese Karte abwirfst, bekommst du 1 Münze und 1 Herz.",
+    "amount": 3,
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "choice",
+        "num_targets": 1
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "last"
+      }
+    ],
+    "drop_effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Kristallkugel",
+    "type": "object",
+    "cost": 3,
+    "level": 3,
+    "description": "Ziehe zwei Karten, dann wirf eine Karte deiner Wahl ab.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "draw_cards",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "drop_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Butterbier",
+    "type": "object",
+    "cost": 3,
+    "level": 3,
+    "description": "Zwei Helden deiner Wahl erhalten jeweils 1 Münze und 1 Herz.",
+    "amount": 3,
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "choice",
+        "num_targets": 2
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "last"
+      }
+    ]
+  },
+  {
+    "name": "Remus Lupin",
+    "type": "ally",
+    "cost": 4,
+    "level": 3,
+    "description": "Du bekommst 1 Blitz. Ein Held deiner Wahl bekommt 3 Herzen.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "choice",
+        "num_targets": 1
+      }
+    ]
+  },
+  {
+    "name": "Sybill Trelawney",
+    "type": "ally",
+    "cost": 4,
+    "level": 3,
+    "description": "Ziehe zwei Karten, dann wirf eine Karte deiner Wahl ab. Wenn du einen Spruch abwirfst, bekommst du 2 Münzen.",
+    "effects": [
+      {
+        "type": "draw_cards",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "drop_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "drop_effects": [
+      {
+        "type": "give_coins",
+        "condition": "spell",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Expecto Patronum!",
+    "type": "spell",
+    "cost": 5,
+    "level": 3,
+    "description": "Du bekommst 1 Blitz. Entferne 1 Totenkopf vom aktuellen Ort.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "remove_skulls",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "name": "Die Karte des Rumtreibers",
+    "type": "object",
+    "cost": 5,
+    "level": 3,
+    "description": "Ziehe zwei Karten. Wenn du diese Karte abwirfst, ziehen ALLE Helden eine Karte.",
+    "effects": [
+      {
+        "type": "draw_cards",
+        "amount": 2,
+        "target": "self"
+      }
+    ],
+    "drop_effects": [
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Petrificus Totalus!",
+    "type": "spell",
+    "cost": 6,
+    "level": 3,
+    "description": "Du bekommst 1 Blitz. Wähle einen Bösewicht. Bis zum Beginn deines nächsten Zuges wird die Fähigkeit dieses Bösewichts nicht ausgeführt.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "stun",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Sirius Black",
+    "type": "ally",
+    "cost": 6,
+    "level": 3,
+    "description": "Du bekommst 2 Blitze und 1 Münze.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Accio!",
+    "type": "spell",
+    "cost": 4,
+    "level": 4,
+    "description": "Wähle: Du bekommst 2 Münzen oder durchsuche deinen Ablagestapel nach einem Gegenstand und nimm diesen auf die Hand.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_coins",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "redraw_object",
+            "amount": 1,
+            "target": "self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Geschichte Hogwarts",
+    "type": "object",
+    "cost": 4,
+    "level": 4,
+    "description": "Würfle mit einem Haus-Würfel deiner Wahl.",
+    "amount": 6,
+    "effects": [
+      {
+        "type": "throw_dice",
+        "dice_type": "choice",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Cedric Diggory",
+    "type": "ally",
+    "cost": 4,
+    "level": 4,
+    "description": "Du bekommst 1 Blitz. Würfle mit dem Hufflepuff-Würfel.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "hufflepuff",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Fleur Delacour",
+    "type": "ally",
+    "cost": 4,
+    "level": 4,
+    "description": "Du bekommst 2 Münzen. Wenn du einen anderen Verbündeten spielst, bekommst du zusätzlich 2 Herzen.",
+    "modifier": [
+      "first_ally_heal"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Viktor Krum",
+    "type": "ally",
+    "cost": 5,
+    "level": 4,
+    "description": "Du bekommst 2 Blitze. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 1 Münze und 1 Herz.",
+    "modifier": [
+      "enemy_kill_coin",
+      "enemy_kill_heal"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Trimagischer Pokal",
+    "type": "object",
+    "cost": 5,
+    "level": 4,
+    "description": "Du bekommst 1 Blitz, 1 Münze und 1 Herz.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Protego!",
+    "type": "spell",
+    "cost": 5,
+    "level": 4,
+    "description": "Du bekommst 1 Blitz und 1 Herz. Wenn du diese Karte abwirfst, bekommst du 1 Blitz und 1 Herz.",
+    "amount": 3,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "self"
+      }
+    ],
+    "drop_effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Denkarium",
+    "type": "object",
+    "cost": 5,
+    "level": 4,
+    "description": "Zwei Helden deiner Wahl erhalten jeweils 1 Münze und ziehen eine Karte.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "choice",
+        "num_targets": 2
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "last"
+      }
+    ]
+  },
+  {
+    "name": "Alastor \"Mad-Eye\" Moody",
+    "type": "ally",
+    "cost": 6,
+    "level": 4,
+    "description": "Du bekommst 2 Münzen. Entferne 1 Totenkopf vom aktuellen Ort.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "remove_skulls",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "name": "Severus Snape",
+    "type": "ally",
+    "cost": 6,
+    "level": 4,
+    "description": "Du bekommst 1 Blitz und 2 Herzen. Würfle mit dem Slytherin-Würfel.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "slytherin",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Minerva McGonagall",
+    "type": "ally",
+    "cost": 6,
+    "level": 4,
+    "description": "Du bekommst 1 Münze und 1 Blitz. Würfle mit dem Gryffindor-Würfel.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "gryffindor",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Filius Flitwick",
+    "type": "ally",
+    "cost": 6,
+    "level": 4,
+    "description": "Du bekommst 1 Münze. Ziehe eine Karte. Würfle mit dem Ravenclaw-Würfel.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "ravenclaw",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Pomona Sprout",
+    "type": "ally",
+    "cost": 6,
+    "level": 4,
+    "description": "Du bekommst 1 Münze. Ein Held deiner Wahl bekommt 2 Herzen. Würfle mit dem Hufflepuff-Würfel.",
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 2,
+        "target": "choice",
+        "num_targets": 1
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "hufflepuff",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Fred Weasley",
+    "type": "ally",
+    "cost": 4,
+    "level": 5,
+    "description": "Du bekommst 1 Blitz. Hat ein anderer Held ein Mitglied der Weasley-Familie auf der Hand, bekommen ALLE Helden 1 Münze. Würfle mit dem Gryffindor-Würfel.",
+    "modifier": "weasley_coin",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "gryffindor",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "George Weasley",
+    "type": "ally",
+    "cost": 4,
+    "level": 5,
+    "description": "Du bekommst 1 Blitz. Hat ein anderer Held ein Mitglied der Weasley-Familie auf der Hand, bekommen ALLE Helden 1 Herz. Würfle mit dem Gryffindor-Würfel.",
+    "modifier": [
+      "weasley_heal"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "gryffindor",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "ZAGs",
+    "type": "object",
+    "cost": 4,
+    "level": 5,
+    "description": "Du bekommst 2 Münzen. Wenn du zwei oder mehr Sprüche ausspielst, bekommst du zusätzlich 1 Blitz und 1 Herz.",
+    "amount": 2,
+    "modifier": [
+      "two_spells_bolt_heal"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Cho Chang",
+    "type": "ally",
+    "cost": 4,
+    "level": 5,
+    "description": "Ziehe drei Karten, dann wirf zwei Karten deiner Wahl ab. Würfle mit dem Ravenclaw-Würfel.",
+    "effects": [
+      {
+        "type": "draw_cards",
+        "amount": 3,
+        "target": "self"
+      },
+      {
+        "type": "drop_cards",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "ravenclaw",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Nymphadora Tonks",
+    "type": "ally",
+    "cost": 5,
+    "level": 5,
+    "description": "Wähle: Du bekommst 3 Münzen oder 2 Blitze oder entferne 1 Totenkopf vom aktuellen Ort.",
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_coins",
+            "amount": 3,
+            "target": "self"
+          },
+          {
+            "type": "give_bolts",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "remove_skull",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Luna Lovegood",
+    "type": "ally",
+    "cost": 5,
+    "level": 5,
+    "description": "Du bekommst 1 Münze. Wenn du einen Gegenstand ausspielst, bekommst du zusätzlich 1 Blitz. Würfle mit dem Ravenclaw-Würfel.",
+    "modifier": [
+      "first_object_bolt"
+    ],
+    "effects": [
+      {
+        "type": "give_coins",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "ravenclaw",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Stupor!",
+    "type": "spell",
+    "cost": 6,
+    "level": 5,
+    "description": "Du bekommst 1 Blitz. Ziehe eine Karte. Entferne 1 Totenkopf vom aktuellen Ort.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "remove_skulls",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "name": "Kingsley Shacklebolt",
+    "type": "ally",
+    "cost": 7,
+    "level": 5,
+    "description": "Du bekommst 2 Blitze und 1 Herz. Entferne 1 Totenkopf vom aktuellen Ort.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "heal",
+        "amount": 1,
+        "target": "self"
+      },
+      {
+        "type": "remove_skulls",
+        "amount": 1
+      }
+    ]
+  },
+  {
+    "name": "Confundo!",
+    "type": "spell",
+    "cost": 3,
+    "level": 6,
+    "description": "Du bekommst 1 Blitz. Wenn du bei jedem Bösewicht mindestens 1 Blitz ablegst, darfst du 1 Totenkopf vom Ort entfernen.",
+    "amount": 2,
+    "modifier": [
+      "one_bolt_remove_skull"
+    ],
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Bezoar",
+    "type": "object",
+    "cost": 4,
+    "level": 6,
+    "description": "Ein Held deiner Wahl bekommt 3 Herzen. Ziehe eine Karte.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "heal",
+        "amount": 3,
+        "target": "choice",
+        "num_targets": 1
+      },
+      {
+        "type": "draw_cards",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Deluminator",
+    "type": "object",
+    "cost": 6,
+    "level": 6,
+    "description": "Entferne bis zu 2 Totenköpfe vom aktuellen Ort.",
+    "effects": [
+      {
+        "type": "remove_skulls",
+        "amount": 2
+      }
+    ]
+  },
+  {
+    "name": "Horace Slughorn",
+    "type": "ally",
+    "cost": 6,
+    "level": 6,
+    "description": "ALLE Helden wählen: Du bekommst 1 Münze oder 1 Herz. Würfle mit dem Slytherin-Würfel.",
+    "effects": [
+      {
+        "type": "choice",
+        "choice_targets": "all",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_coins",
+            "amount": 1,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 1,
+            "target": "self"
+          }
+        ]
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "slytherin",
+        "amount": 1,
+        "target": "self"
+      }
+    ]
+  },
+  {
+    "name": "Zaubertränke für Fortgeschrittene",
+    "type": "object",
+    "cost": 6,
+    "level": 6,
+    "description": "ALLE Helden bekommen 2 Herzen. Helden, die dann ihr Maximum an Herzen erreicht haben, bekommen 1 Blitz und ziehen eine Karte.",
+    "effects": [
+      {
+        "type": "heal",
+        "amount": 2,
+        "target": "all"
+      }
+    ]
+  },
+  {
+    "name": "Felix Felicis",
+    "type": "object",
+    "cost": 7,
+    "level": 6,
+    "description": "Wähle zwei: Du bekommst 2 Blitze oder 2 Münzen oder 2 Herzen oder ziehe zwei Karten.",
+    "amount": 2,
+    "effects": [
+      {
+        "type": "choice",
+        "num_effects": 2,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "give_coins",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "draw_cards",
+            "amount": 2,
+            "target": "self"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Elderstab",
+    "type": "object",
+    "cost": 7,
+    "level": 6,
+    "description": "Für jeden Spruch, den du diese Runde ausspielst, bekommst du 1 Blitz und 1 Herz.",
+    "modifier": [
+      "spell_bolt_heal"
+    ],
+    "effects": []
+  },
+  {
+    "name": "Gryffindors Schwert",
+    "type": "object",
+    "cost": 7,
+    "level": 7,
+    "description": "Du bekommst 2 Blitze. Würfle zweimal mit dem Gryffindor-Würfel.",
+    "effects": [
+      {
+        "type": "give_bolts",
+        "amount": 2,
+        "target": "self"
+      },
+      {
+        "type": "throw_dice",
+        "dice_type": "gryffindor",
+        "amount": 2,
+        "target": "self"
+      }
+    ]
+  }
+]

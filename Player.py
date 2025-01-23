@@ -11,6 +11,7 @@ class Player:
         self.name = name
         self.names = self.name.split(" ")
         self.health = 10
+
         self.coins = 0
         self.bolts = 0
         self.deck = Deck.Deck()
@@ -89,6 +90,11 @@ class Player:
             self.hand.remove(card)
             self.discard_pile.append(card)
 
+    def buy_card(self, card, game_state):
+        cost = card.data["cost"]
+        if self.coins >= cost:
+            game_state.event_handler.dispatch_event(Event.BuyCardEvent(self, card))
+
     def damage_enemy(self, enemy, game_state):
         if self.bolts > 0:
             game_state.apply_effect(Effect.DamageEffect(1), self, [enemy])
@@ -102,12 +108,12 @@ class Player:
     def apply_heal_effect(self, amount, game_state):
         self.heal(amount)
 
-    def apply_damage_effect(self, amount, game_state):
+    def apply_damage_effect(self, amount, game_state, event):
         if self.is_dead:
             return
         self.take_damage(amount)
         if self.is_dead:
-            game_state.event_handler.dispatch_event(Event.PlayerDeadEvent(self))
+            game_state.event_handler.dispatch_event(Event.PlayerDeadEvent(event.data.get("source"), self))
 
     def apply_give_bolts_effect(self, amount, game_state):
         self.give_bolts(amount)
@@ -155,12 +161,14 @@ class Player:
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
+            self.health = 0
             self.is_dead = True
 
-    def die(self):
+    def die(self, game_state, source):
         self.coins = 0
         self.bolts = 0
-        # TODO: Implement drop cards
+
+        game_state.select_drop_cards([self], None, len(self.hand) // 2, source)
 
     def shuffle_deck(self):
         random.shuffle(self.deck)

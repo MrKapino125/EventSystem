@@ -3,10 +3,11 @@ import pygame
 import Enemy
 import Card
 import Deck
+import Event
 
 
 class Board:
-    def __init__(self, hogwarts_cards, dark_arts_cards, enemies, places, players, screen_size):
+    def __init__(self, hogwarts_cards, dark_arts_cards, enemies, places, players, game_state):
         self.players = players
 
         self.enemy_stack = Deck.Deck()
@@ -28,6 +29,8 @@ class Board:
         self.width = 0
         self.height = 0
 
+        screen_size = game_state.screen_size
+        self.game_state = game_state
         self.overlay_width = screen_size[0] // 4
         self.overlay_height = screen_size[1]
         self.overlay_rect = pygame.Rect(-self.overlay_width, 0, self.overlay_width, self.overlay_height)  # start offscreen
@@ -65,10 +68,11 @@ class Board:
             player.shuffle_deck()
             player.draw_5()
 
-    def tick(self, game_state):
+    def tick(self):
+        game_state = self.game_state
         event_handler = game_state.event_handler
 
-        self.overlay_tick(game_state)
+        self.overlay_tick()
 
         if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
             if self.is_hovering:
@@ -77,21 +81,27 @@ class Board:
                     if card in game_state.current_player.hand:
                         game_state.current_player.play_card(card, game_state)
                         game_state.card_position_manager.align_players()
+                    if card in self.shop_cards:
+                        game_state.current_player.buy_card(card, game_state)
+                        game_state.card_position_manager.align_players()
                 elif isinstance(card, Enemy.Enemy):
                     game_state.current_player.damage_enemy(card, game_state)
 
-    def select_tick(self, game_state):
+    def select_tick(self):
+        game_state = self.game_state
         event_handler = game_state.event_handler
 
-        self.overlay_tick(game_state)
+        self.overlay_tick()
 
         if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
-            for selectable in game_state.current_selectables:
+            for selectable in game_state.selectables:
                 if selectable.is_hovering(event_handler.mouse_pos):
-                    game_state.selectors_selections[game_state.current_selector].append(selectable)
-                    game_state.current_selections_left -= 1
+                    game_state.selections.append(selectable)
+                    game_state.selections_left -= 1
+                    game_state.selectables.remove(selectable)
 
-    def overlay_tick(self, game_state):
+    def overlay_tick(self):
+        game_state = self.game_state
         event_handler = game_state.event_handler
 
         for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump]:
@@ -133,6 +143,8 @@ class Board:
         hand_cards = [card for player in self.players for card in player.hand]
         for card in hand_cards:
             card.render(screen)
+        for selectable in self.game_state.selectables:
+            selectable.render_select_overlay(screen)
 
         self.render_overlay(screen)
 

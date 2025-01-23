@@ -1,21 +1,5 @@
 [
     {
-        "name": "OBLIVIATE!",
-        "level": 2,
-        "description": "ALLE Helden wählen: Wirf einen Spruch ab oder du verlierst 2 Herzen",
-        "effects": [
-            {
-                "type": "choice",
-                "choice_targets": "all",
-                "num_effects": 1,
-                "options": [
-                    {"type": "drop_cards", "card_type": "spell", "amount": 1, "target": "self"},
-                    {"type": "damage", "amount": 2, "target": "self"}
-                ]
-            }
-        ]
-    },
-    {
         "name": "FLIPENDO!",
         "level": 1,
         "description": "Der aktive Held verleirt 1 Herz und muss 1 Karte abwerfen",
@@ -30,7 +14,7 @@
         "level": 1,
         "description": "ALLE Helden verlieren 1 Herz und können in diesem Zug keine zusätzlichen Karten ziehen.",
         "amount": 2,
-        "modifier": "no_draw",
+        "modifier": [ "no_draw" ],
         "effects": [
             {"type": "damage", "amount": 1, "target": "all"}
         ]
@@ -51,6 +35,252 @@
         "amount": 3,
         "effects": [
             {"type": "damage", "amount": 2, "target": "self"}
+        ]
+    },
+    {
+        "name": "OBLIVIATE!",
+        "level": 2,
+        "description": "ALLE Helden wählen: Wirf einen Spruch ab oder du verlierst 2 Herzen",
+        "effects": [
+            {
+                "type": "choice",
+                "choice_targets": "all",
+                "num_effects": 1,
+                "options": [
+                    {"type": "drop_cards", "card_type": "spell", "amount": 1, "target": "self"},
+                    {"type": "damage", "amount": 2, "target": "self"}
+                ]
+            }
+        ]
+    },
+    {
+        "name": "HAND DES RUHMS",
+        "level": 2,
+        "description": "Der aktive Held verliert 1 Herz. Fügt 1 Totenkopf zum aktuellen Ort hinzu.",
+        "amount": 2,
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "self"},
+            {"type": "place_skulls", "amount": 1}
+        ]
+    },
+    {
+        "name": "RELASCHIO!",
+        "level": 2,
+        "description": "ALLE Helden wählen: Wirf einen Gegenstand ab oder du verlierst 2 Herzen",
+        "effects": [
+            {
+                "type": "choice",
+                "choice_targets": "all",
+                "num_effects": 1,
+                "options": [
+                    {"type": "drop_cards", "card_type": "object", "amount": 1, "target": "self"},
+                    {"type": "damage", "amount": 2, "target": "self"}
+                ]
+            }
+        ]
+    },
+    {
+        "name": "GIFT",
+        "level": 2,
+        "description": "ALLE Helden wählen: Wirf einen Verbündeten ab oder du verlierst 2 Herzen",
+        "effects": [
+            {
+                "type": "choice",
+                "choice_targets": "all",
+                "num_effects": 1,
+                "options": [
+                    {"type": "drop_cards", "card_type": "ally", "amount": 1, "target": "self"},
+                    {"type": "damage", "amount": 2, "target": "self"}
+                ]
+            }
+        ]
+    },
+    {
+        "name": "KUSS DES DEMENTORS",
+        "level": 3,
+        "description": "Der aktive Held verliert 2 Herzen und alle anderen Helden verlieren 1 Herz.",
+        "amount": 2,
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "all"},
+            {"type": "damage", "amount": 1, "target": "self"}
+        ]
+    },
+    {
+        "name": "TARANTALLEGRA!",
+        "level": 3,
+        "description": "Der aktive Held verliert 1 Herz und kann in diesem Zug bei keinem Bösewicht mehr als 1 Blitz ablegen.",
+        "modifier": [ "one_bolt_enemy" ],
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "self"}
+        ]
+    },
+    {
+        "name": "OPPUGNO!",
+        "level": 3,
+        "description": "ALLE Helden müssen die oberste Karte ihres Nachziehstapels aufdecken: Helden, deren Karte einen Wert von 1 Münze oder mehr hat, müssen diese abwerfen und verlieren 2 Herzen.",
+        "effects": [
+            {"type": "draw_top", "card_type": "value", "target": "all"}
+        ]
+    },
+    {
+        "name": "MORSMORDRE!",
+        "level": 4,
+        "description": "ALLE Helden verlieren 1 Herz. Fügt 1 Totenkopf zum aktuellen Ort hinzu.",
+        "amount": 2,
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "all"},
+            {"type": "place_skulls", "amount": 1}
+        ]
+    },
+    {
+        "name": "CRUCIO!",
+        "level": 4,
+        "description": "Der aktive Held verliert 1 Herz. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "self"}
+        ]
+    },
+    {
+        "name": "IMPERIO!",
+        "level": 4,
+        "description": "Der aktive Held bestimmt einen anderen Helden, der 2 Herzen verliert. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 2, "target": "other"}
+        ]
+    },
+    {
+        "name": "AVADA KEDAVRA!",
+        "level": 4,
+        "description": "Der aktive Held verliert 3 Herzen. Wenn der Held dabei betäubt wird, fügt einen zusätzlichen Totenkopf zum aktuellen Ort hinzu. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 3, "target": "self"}
+        ]
+    },
+    {
+        "name": "REGENERATION",
+        "level": 4,
+        "description": "Entfernt jeweils 2 Blitze von ALLEN Bösewichten.",
+        "effects": [
+            {"type": "heal_enemies", "amount": 2}
+        ]
+    },
+    {
+        "name": "SLYTHERINS ERBE",
+        "level": 4,
+        "description": "Würfelt mit dem Slytherin-Würfel: Blitz = ALLE Helden verlieren 1 Herz. Münze = Legt 1 Totenkopf auf den aktuellen Ort. Herz = Entfernt jeweils 1 Blitz von ALLEN Bösewichten. Karte = ALLE Helden müssen eine Karte abwerfen.",
+        "amount": 2,
+        "effects": [
+            {"type": "throw_dice", "dice_type": "slytherin","amount": 1}
+        ]
+    },
+    {
+        "name": "MORSMORDRE!",
+        "level": 5,
+        "description": "ALLE Helden verlieren 1 Herz. Fügt 1 Totenkopf zum aktuellen Ort hinzu.",
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "all"},
+            {"type": "place_skulls", "amount": 1}
+        ]
+    },
+    {
+        "name": "CRUCIO!",
+        "level": 5,
+        "description": "Der aktive Held verliert 1 Herz. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "self"}
+        ]
+    },
+    {
+        "name": "IMPERIO!",
+        "level": 5,
+        "description": "Der aktive Held bestimmt einen anderen Helden, der 2 Herzen verliert. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 2, "target": "other"}
+        ]
+    },
+    {
+        "name": "AVADA KEDAVRA!",
+        "level": 5,
+        "description": "Der aktive Held verliert 3 Herzen. Wenn der Held dabei betäubt wird, fügt einen zusätzlichen Totenkopf zum aktuellen Ort hinzu. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 3, "target": "self"}
+        ]
+    },
+    {
+        "name": "LEGILIMENTIK",
+        "level": 5,
+        "description": "ALLE Helden müssen die oberste Karte ihres Nachziehstapels aufdecken: Helden, die einen Spruch aufdecken, werfen ihn ab und verlieren 2 Herzen.",
+        "effects": [
+            {"type": "draw_top", "card_type": "spell", "target": "all"}
+        ]
+    },
+    {
+        "name": "AUSBILDUNGSERLASS",
+        "level": 5,
+        "description": "Für jede Handkarte mit einem Wert von 4 oder mehr Münzen verliert der aktive Held 1 Herz.",
+        "amount": 2,
+        "effects": [
+            {"type": "check_hand", "target": "self"}
+        ]
+    },
+    {
+        "name": "MORSMORDRE!",
+        "level": 6,
+        "description": "ALLE Helden verlieren 1 Herz. Fügt 1 Totenkopf zum aktuellen Ort hinzu.",
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "all"},
+            {"type": "place_skulls", "amount": 1}
+        ]
+    },
+    {
+        "name": "SECTUMSEMPRA!",
+        "level": 6,
+        "description": "ALLE Helden verlieren 2 Herzen und können in diesem Zug keine Herzen bekommen.",
+        "amount": 2,
+        "modifier": [ "no_heal" ],
+        "effects": [
+            {"type": "damage", "amount": 2, "target": "all"}
+        ]
+    },
+    {
+        "name": "CRUCIO!",
+        "level": 7,
+        "description": "Der aktive Held verliert 1 Herz. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 1, "target": "self"}
+        ]
+    },
+    {
+        "name": "IMPERIO!",
+        "level": 7,
+        "description": "Der aktive Held bestimmt einen anderen Helden, der 2 Herzen verliert. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 2, "target": "other"}
+        ]
+    },
+    {
+        "name": "AVADA KEDAVRA!",
+        "level": 7,
+        "description": "Der aktive Held verliert 3 Herzen. Wenn der Held dabei betäubt wird, fügt einen zusätzlichen Totenkopf zum aktuellen Ort hinzu. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
+        "is_unforgivable": true,
+        "effects": [
+            {"type": "damage", "amount": 3, "target": "self"}
+        ]
+    },
+    {
+        "name": "DÄMONSFEUER",
+        "level": 7,
+        "description": "ALLE Helden verlieren 3 Herzen.",
+        "effects": [
+            {"type": "damage", "amount": 3, "target": "all"}
         ]
     }
 ]
