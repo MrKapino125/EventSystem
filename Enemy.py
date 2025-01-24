@@ -91,6 +91,9 @@ class Enemy:
         return lines
 
     def apply_damage_effect(self, amount, game_state, event):
+        if self.is_dead:
+            return
+
         self.damage()
 
         if self.health <= 0:

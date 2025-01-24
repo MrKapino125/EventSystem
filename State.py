@@ -1,3 +1,5 @@
+import selectors
+
 import Card
 import Deck
 import Effect
@@ -7,6 +9,7 @@ import Eventhandler
 import EffectModifiers
 import Player
 import Board
+import Button
 import pygame
 from CardPositionManager import CardPositionManager
 
@@ -29,7 +32,6 @@ class GameState(State):
         event_handler.register_listener("damage_taken", self.handle_damage_event)
         event_handler.register_listener("health_gained", self.handle_heal_event)
         event_handler.register_listener("bolt_given", self.handle_bolt_given_event)
-        event_handler.register_listener("bolt_placed", self.handle_bolt_placed_event)
         event_handler.register_listener("coin_given", self.handle_coin_given_event)
         event_handler.register_listener("card_played", self.handle_card_played_event)
         event_handler.register_listener("card_drawn", self.handle_card_drawn_event)
@@ -55,6 +57,9 @@ class GameState(State):
         self.selectables = []
         self.selections = []
         self.current_selector = None
+        self.select_text = ""
+
+        self.end_turn_button = Button.Button()
 
         self.turn_started = False
 
@@ -105,8 +110,10 @@ class GameState(State):
                 self.enemies_done[enemy] = True
                 return
 
-        if len(self.current_player.hand) == 0:
-            self.end_turn()
+        if self.event_handler.is_clicked["left"] and not self.event_handler.is_clicked_lock["left"]:
+            if self.end_turn_button.is_hovering(self.event_handler.mouse_pos):
+                self.end_turn()
+                return
 
         self.board.tick()
 
@@ -119,9 +126,10 @@ class GameState(State):
         self.board.select_tick()
 
     def render(self, screen):
-        self.board.render(screen)
         for player in self.players:
             player.render(screen)
+        self.board.render(screen)
+        self.end_turn_button.render(screen)
 
     def init_round(self):
         self.board.draw_shop_cards()
@@ -308,6 +316,9 @@ class GameState(State):
 
         if isinstance(source, Player.Player):
             source.bolts -= 1
+        if isinstance(target, Enemy.Enemy):
+            if isinstance(self.current_player, Player.Ron):
+                self.current_player.apply_hero_effect(event, self)
 
         target.apply_damage_effect(amount, self, event)
 
@@ -334,14 +345,7 @@ class GameState(State):
         target = event.data['target']
         amount = event.data['amount']
 
-        self.current_player.apply_give_bolts_effect(amount, self)
-
-    def handle_bolt_placed_event(self, event):
-        target = event.data['target']
-        amount = event.data['amount']
-
-        if isinstance(self.current_player, Player.Ron):
-            self.current_player.apply_hero_effect(event, self)
+        target.apply_give_bolts_effect(amount, self)
 
     def handle_coin_given_event(self, event):
         target = event.data['target']
@@ -374,6 +378,7 @@ class GameState(State):
             return
 
         self.board.active_place = self.board.places.pop()
+        self.card_position_manager.realign_board()
 
     def handle_card_dropped_event(self, event):
         source = event.data['source']
@@ -417,7 +422,6 @@ class GameState(State):
         source.coins -= cost
         self.board.shop_cards.remove(card)
 
-
     # PRIVATE #
 
     def _apply_card_effects(self, source, effect_data, card, active_player=None):
@@ -431,12 +435,10 @@ class GameState(State):
         if effect_type == "choice":
             choice_targets_type = effect_data.get("choice_targets")
             if choice_targets_type is None:
-                self._apply_effect_choice(active_player, source, effect_data, card)
+                self._apply_effect_choice([active_player], source, effect_data, card)
             else:
                 choice_targets = self._resolve_targets(active_player, choice_targets_type, None)
-                for choice_target in choice_targets:
-                    active_player = choice_target
-                    self._apply_effect_choice(active_player, source, effect_data, card)
+                self._apply_effect_choice(choice_targets, source, effect_data, card)
             return
 
         if effect_type == "give_coins":
@@ -474,37 +476,24 @@ class GameState(State):
             self.select_drop_cards(targets, effect_data.get("card_type"), effect_data.get("amount", 1), source)
             return
 
+        if targets == "choice":
+            num_targets = effect_data.get("num_targets", 1)
+            available_targets = effect_data.get("available_targets")
+            valid_targets = self._resolve_available_targets(source, available_targets)
+            if not valid_targets:
+                return None
+            self.select_targets([active_player], num_targets, valid_targets, source, card, effect, self._select_player_callback)
+            return
+
         self.apply_effect(effect, source, targets)
 
-    def _apply_effect_choice(self, player, source, effect_data, card):
+    def _apply_effect_choice(self, choice_targets, source, effect_data, card):
         card_data = card.data
         description = card_data.get("description")
         num_effects = effect_data["num_effects"]
         options = effect_data["options"]
 
-        print(f"{player.name}, choose {num_effects} effects:")
-
-        if description is not None:
-            options_desc = description.split(" oder ")
-            for i, option in enumerate(options_desc):
-                print(f"{i + 1}: {option}")
-
-        chosen_effects = []
-        while len(chosen_effects) < num_effects:
-            while True:
-                try:
-                    choice = int(input("> ")) - 1
-                    if 0 <= choice < len(options):
-                        chosen_effects.append(options[choice])
-                        break
-                    else:
-                        print("Invalid choice. Please try again.")
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-
-        # Apply chosen effects
-        for chosen_effect in chosen_effects:
-            self._apply_card_effects(source, chosen_effect, card_data, player)
+        self.select_effect(choice_targets, num_effects, options, source, card)
 
     def _resolve_targets(self, source, target_type, effect_data):
         if target_type == "self":
@@ -512,13 +501,7 @@ class GameState(State):
         elif target_type == "all":
             return self.players[:]
         elif target_type == "choice":
-            num_targets = effect_data.get("num_targets", 1)
-            available_targets = effect_data.get("available_targets")
-            valid_targets = self._resolve_available_targets(source, available_targets)
-            if not valid_targets:
-                return None
-            chosen_targets = self.choose_targets(source, valid_targets, num_targets)
-            return chosen_targets
+            return "choice"
         else:
             raise ValueError(f"Unknown target type: {target_type}")
 
@@ -629,9 +612,10 @@ class GameState(State):
         else:
             return self.select_multiple_targets(source, num_targets, valid_targets)
 
-    def init_choice(self, selectors, amount, kwargs, callback, selectables):
+    def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text):
         self.select = True
-        self.selectors = selectors
+        self.selectors = selectors[:]
+        self.select_text = select_text
 
         if self.current_player in self.selectors:
             self.current_selector = self.current_player
@@ -641,7 +625,7 @@ class GameState(State):
         self.selections_left = amount
         self.selection_kwargs = kwargs
         self.selection_callback = callback
-        self.selectables = selectables
+        self.selectables = selectables[:]
         self.selections = []
 
     def resolve_choice(self):
@@ -652,6 +636,31 @@ class GameState(State):
         self.selection_kwargs = {}
         self.selection_callback = None
         self.selectables = []
+        self.select_text = ""
+
+    def select_targets(self, selectors, amount, valid_targets, source, card, effect, callback):
+        selectables = valid_targets
+
+        select_text = ""
+        if card is not None:
+            select_text = card.data["description"]
+        selection_kwargs = {"amount": amount, "valid_targets": valid_targets, "source": source, "card": card, "effect": effect}
+
+        #print(selectors, amount, selection_kwargs, callback, selectables, select_text)
+        self.init_choice(selectors, amount, selection_kwargs, callback, selectables, select_text)
+
+    def select_effect(self, selectors, amount, options, source, card):
+        buttons = []
+        for option in options:
+            button = Button.EffectButton(option)
+            button.set_text()
+            buttons.append(button)
+        self.card_position_manager.align_buttons(buttons)
+
+        kwargs = {"source": source, "amount": amount, "options": buttons[:], "card": card}
+        callback = self._effect_choice_callback
+
+        self.init_choice(selectors, amount, kwargs, callback, buttons, card.data["description"])
 
     def select_drop_cards(self, selectors, card_type, amount, source):
         selectables = []
@@ -671,7 +680,10 @@ class GameState(State):
                 if card.data["type"] == card_type:
                     selectables.append(card)
 
-        self.init_choice(selectors, amount, selection_kwargs, callback, selectables)
+        select_text = ""
+        if isinstance(source, Card.Card):
+            select_text = source.data["description"]
+        self.init_choice(selectors, amount, selection_kwargs, callback, selectables, select_text)
 
     # CALLBACKS
 
@@ -687,6 +699,29 @@ class GameState(State):
         else:
             self.resolve_choice()
 
+    def _effect_choice_callback(self, source, amount, options, card):
+        selections = self.selections
+        for button in selections:
+            effect = button.effect
+            self._apply_card_effects(source, effect, card, self.current_selector)
+
+        if self.selection_callback == self._effect_choice_callback:
+            self.selectors.remove(self.current_selector)
+            if self.selectors:
+                self.select_effect(self.selectors, amount, options, source, card)
+            else:
+                self.resolve_choice()
+
+    def _select_player_callback(self, amount, valid_targets, source, card, effect):
+        selections = self.selections
+        for player in selections:
+            self.apply_effect(effect, source, [player])
+
+        self.selectors.remove(self.current_selector)
+        if self.selectors:
+            self.select_targets(selectors, amount, valid_targets, source, card, effect, self._select_player_callback)
+        else:
+            self.resolve_choice()
 
 
 class StateManager:

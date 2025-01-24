@@ -109,6 +109,10 @@ class Board:
 
             if is_hovering:
                 self.current_card = card
+                if isinstance(card, Deck.DiscardPile):
+                    if len(card) == 0:
+                        self.is_hovering = False
+                        break
                 self.is_hovering = True
                 break
         else:
@@ -143,10 +147,25 @@ class Board:
         hand_cards = [card for player in self.players for card in player.hand]
         for card in hand_cards:
             card.render(screen)
+        self.render_select_text(screen)
         for selectable in self.game_state.selectables:
             selectable.render_select_overlay(screen)
 
         self.render_overlay(screen)
+
+    def render_select_text(self, screen):
+        text = self.game_state.select_text
+        space_width = self.game_state.card_position_manager.space_width
+        space_height = self.game_state.card_position_manager.space_height
+        space_pos = self.game_state.card_position_manager.space_pos
+
+        text_height_portion = space_height * 19 // 48  # Calculate the height of the text area
+        text_rect = pygame.Rect(space_pos[0], space_pos[1], space_width,
+                                text_height_portion)  # Create the rectangle
+        font = pygame.font.Font(None, 36)  # You can adjust the font size
+        text_surface = font.render(text, True,  (255, 0, 0))
+        text_rect = text_surface.get_rect(center=text_rect.center)
+        screen.blit(text_surface, text_rect)
 
     def render_overlay(self, screen):
         s = pygame.Surface((self.overlay_rect.width, self.overlay_rect.height), pygame.SRCALPHA)  # per-pixel alpha
@@ -155,6 +174,8 @@ class Board:
 
         if self.text_visible:
             reward_text = None
+            card_name = ""
+            card_description = ""
             if isinstance(self.current_card, Card.HogwartsCard):
                 card_name = self.current_card.data["name"]
                 card_description = self.current_card.data["description"]
@@ -164,11 +185,12 @@ class Board:
                 reward_text = self.current_card.reward_text
             elif isinstance(self.current_card, Deck.DiscardPile) and len(self.current_card) > 0:
                 card = self.current_card[len(self.current_card) - 1]
-                card_name = card.data["name"]
-                card_description = card.data["description"]
-            else:
-                card_name = ""
-                card_description = ""
+                if isinstance(card, Card.HogwartsCard) or isinstance(card, Card.DarkArtsCard):
+                    card_name = card.data["name"]
+                    card_description = card.data["description"]
+                elif isinstance(card, Enemy.Enemy):
+                    card_name = card.name
+                    card_description = card.description
 
             name_text = self.font.render(card_name, True, (0, 0, 0))
             name_rect = name_text.get_rect(center=(self.overlay_rect.centerx, self.overlay_rect.centery - 40))  # moved name up
@@ -208,7 +230,8 @@ class Board:
             return
 
         while len(self.shop_cards) < 6:
-            self.shop_cards.append(self.hogwarts_stack.pop())
+            if len(self.hogwarts_stack) > 0:
+                self.shop_cards.append(self.hogwarts_stack.pop())
 
     def draw_enemies(self, amount):
         for _ in range(amount):

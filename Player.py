@@ -4,6 +4,7 @@ import Event
 from State import GameState
 import Deck
 import pygame
+import math
 
 
 class Player:
@@ -22,6 +23,11 @@ class Player:
         self.pos = (0, 0)
         self.width = 0
         self.height = 0
+        self.circle_radius = 0
+        self.character_circle_center = (0, 0)
+        self.health_circle_center = (0, 0)
+        self.coins_circle_center = (0, 0)
+        self.bolts_circle_center = (0, 0)
 
     def render(self, screen):
         self.render_hand(screen)
@@ -29,6 +35,16 @@ class Player:
         self.render_deck(screen)
         self.render_discard_pile(screen)
         self.render_stats(screen)
+
+    def render_select_overlay(self, screen):
+        green = (0, 255, 0)  # Green color
+        thickness = 4  # Outline thickness
+
+        pygame.draw.circle(screen, green, self.character_circle_center, self.circle_radius, thickness)
+
+    def is_hovering(self, mouse_pos):
+        distance = math.sqrt((mouse_pos[0] - self.character_circle_center[0]) ** 2 + (mouse_pos[1] - self.character_circle_center[1]) ** 2)
+        return distance <= self.circle_radius
 
     def render_hand(self, screen):
         for card in self.hand:
@@ -41,10 +57,10 @@ class Player:
         self.discard_pile.render(screen)
 
     def render_stats(self, screen):
-        self.render_circles(screen, self.pos, self.names[0][0] + self.names[1][0], self.health)
-        self.render_circles(screen, (self.pos[0] + 7 * self.width / 8, self.pos[1]), self.coins, self.bolts)
+        self.render_circles(screen, self.pos, self.names[0][0] + self.names[1][0], self.health, True)
+        self.render_circles(screen, (self.pos[0] + 7 * self.width / 8, self.pos[1]), self.coins, self.bolts, False)
 
-    def render_circles(self, screen, pos, num1, num2):
+    def render_circles(self, screen, pos, num1, num2, is_left):
         width, height = self.width / 8, self.height
         x, y = pos[0], pos[1]
 
@@ -61,6 +77,14 @@ class Player:
         # Calculate circle centers
         left_circle_center = (x + padding + circle_radius, y + padding + circle_radius)
         right_circle_center = (x + 2 * padding + 3 * circle_radius, y + padding + circle_radius)
+
+        self.circle_radius = circle_radius
+        if is_left:
+            self.character_circle_center = left_circle_center
+            self.health_circle_center = right_circle_center
+        else:
+            self.coins_circle_center = left_circle_center
+            self.bolts_circle_center = right_circle_center
 
         # Draw the circles
         pygame.draw.circle(screen, (255, 0, 0), left_circle_center, circle_radius, 2)
@@ -103,6 +127,8 @@ class Player:
         self.coins = 0
         self.bolts = 0
 
+        while len(self.hand) > 0:
+            self.discard_pile.append(self.hand.pop())
         self.draw_5()
 
     def apply_heal_effect(self, amount, game_state):

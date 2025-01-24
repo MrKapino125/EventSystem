@@ -19,8 +19,26 @@ class CardPositionManager:
         self.card_width = (7/16) * self.enemy_width
         self.card_height = self.board_height // 4.5
 
+        self.space_x = self.board_x
+        self.space_y = self.board_y + self.board_height
+        self.space_pos = self.space_x, self.space_y
+        self.space_width = self.board_width
+        self.space_height = self.game_state.screen_size[1] - self.board_height
+
+        self.end_turn_button = self.game_state.end_turn_button
+        self.end_turn_x = self.board_x + self.board_width // 32
+        self.end_turn_y = self.board_y + self.board_height + self.space_height // 4
+        self.end_turn_height = self.space_height // 2
+        self.end_turn_width = self.end_turn_height
+        self.end_turn_button.pos = (self.end_turn_x, self.end_turn_y)
+        self.end_turn_button.width = self.end_turn_width
+        self.end_turn_button.height = self.end_turn_height
+        self.end_turn_button.text = "Zug beenden"
+        self.end_turn_button.lines = self.end_turn_button.generate_lines()
+
     def update(self):
-        self.align_shop_cards()
+        if len(self.board.shop_cards) == 6:
+            self.align_shop_cards()
         self.align_enemies()
         self.align_players()
 
@@ -41,7 +59,7 @@ class CardPositionManager:
         self.enemy_width = self.board_width // 5
         self.enemy_height = self.board_height // 7
 
-        self.card_width = (7 / 16) * self.enemy_width
+        self.card_width = 7 * self.enemy_width // 16
         self.card_height = self.board_height // 4.5
 
         self.enemy_stack.width = self.enemy_width
@@ -62,6 +80,7 @@ class CardPositionManager:
             card.width = self.card_width
             card.height = self.card_height
 
+        self.active_place = self.board.active_place
         self.active_place.width = self.enemy_width
         self.active_place.height = self.enemy_height
         place_x = self.board_x + self.board_width // 16
@@ -105,6 +124,21 @@ class CardPositionManager:
         self.dark_arts_stack.pos = dark_arts_stack_x, self.active_place.pos[1]
         self.dark_arts_dump.pos = dark_arts_dump_x, self.active_place.pos[1]
         self.enemy_dump.pos = enemy_dump_x, self.enemy_stack.pos[1]
+
+        self.end_turn_button = self.game_state.end_turn_button
+        self.end_turn_x = self.board_x + self.board_width // 32
+        self.end_turn_y = self.board_y + self.board_height + self.space_height // 4
+        self.end_turn_height = self.space_height // 2
+        self.end_turn_width = self.end_turn_height
+        self.end_turn_button.pos = (self.end_turn_x, self.end_turn_y)
+        self.end_turn_button.width = self.end_turn_width
+        self.end_turn_button.height = self.end_turn_height
+
+        self.space_x = self.end_turn_x + self.end_turn_width
+        self.space_y = self.board_y + self.board_height
+        self.space_pos = self.space_x, self.space_y
+        self.space_width = self.board_width - (self.end_turn_x + self.end_turn_width)
+        self.space_height = self.game_state.screen_size[1] - self.board_height
 
         self.update()
 
@@ -231,5 +265,31 @@ class CardPositionManager:
             card.pos = (current_x, y_level)
             card.lines = card.generate_lines()
             current_x += card.width + (max_length / 64)  # Add card width and spacing
+
+    def align_buttons(self, buttons):
+        num_buttons = len(buttons)
+        if num_buttons == 0:
+            return
+
+        max_button_width = self.space_width // 6
+        max_padding = self.space_width // 16
+        available_width = self.space_width
+
+        button_width = min(max_button_width, available_width // num_buttons - max_padding)
+        total_buttons_width = num_buttons * button_width
+        total_padding = (num_buttons - 1) * max_padding
+        if total_buttons_width + total_padding > self.space_width:
+            button_width = (self.space_width - total_padding) // num_buttons
+
+        start_x = self.space_pos[0] + (
+                    self.space_width - (num_buttons * button_width + (num_buttons - 1) * max_padding)) // 2
+        button_height = 13 * self.space_height // 24
+        start_y = self.space_pos[1] + self.space_height * 2 // 3 - button_height // 2
+
+        for i, button in enumerate(buttons):
+            x = start_x + i * (button_width + max_padding)
+            button.pos = (x, start_y)
+            button.width = button_width
+            button.height = button_height
 
 

@@ -25,6 +25,7 @@ class Button:
             height = self.height
             altered = False
 
+
         fill_surface = pygame.Surface((width, height), pygame.SRCALPHA)
         pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, width, height))
 
@@ -60,57 +61,10 @@ class Button:
 
         text = self.text
 
-        self.font_size = 20
-        font = self.font
         words = re.split(r"([ -])", text)
         words = [word for word in words if word != " "]
 
-        def check_length(word):
-            counter = 1
-            while counter <= len(word):
-                new_word = word[:len(word) - counter]
-                text_width, _ = font.size(new_word)
-                if text_width <= width - 10:
-                    return new_word, word[len(word) - counter:]
-                counter += 1
-            return "", word  # Return empty string if no suitable split can be found
-
-        def get_lines(words):
-            lines = []
-            current_line = ""
-
-            i = 0
-            while i < len(words):  # Use while loop with index for correct list manipulation
-                word = words[i]
-                if word == "-":
-                    test_line = current_line[:-1] + word + " "
-                else:
-                    test_line = current_line + word + " "
-                text_width, _ = font.size(test_line)
-
-                if text_width <= width - 10:
-                    current_line = test_line
-                    i += 1  # Increment only if we add the word
-                else:
-                    word_width, _ = font.size(word)
-                    if word_width > width - 10:  # Only split words that are too long on their own
-                        new_word, new_word_end = check_length(word)
-                        if new_word != "":  # Check if a split was possible
-                            words[i] = new_word  # Replace the word with the first part
-                            words.insert(i + 1, new_word_end)  # Insert the second part after
-                        else:
-                            lines.append(current_line)
-                            current_line = ""
-                            i += 1
-                    else:
-                        lines.append(current_line)
-                        current_line = word + " "
-                        i += 1
-
-            lines.append(current_line)
-            return lines
-
-        return get_lines(words)
+        return words
 
     def is_hovering(self, mouse_pos):
         mouse_x, mouse_y = mouse_pos
@@ -130,7 +84,8 @@ class EffectButton(Button):
         self.effect = effect
 
     def set_text(self):
-        self.text = f"{self.effect['type']} {self.effect.get('amount')}"
+        self.text = f"{self.effect['type']} {self.effect.get('amount')} {self.effect.get('target')}"
+        self.lines = self.generate_lines()
 
     def parse_effect_type(self, effect_type):
         pass
