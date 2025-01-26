@@ -57,7 +57,7 @@ class CardPlayEffect(Effect):
 
 class EnemyDeadEffect(Effect):
     def apply(self, source, target, game_state):
-        game_state.event_handler.dispatch_event(Event.EnemyDeadEvent(source))
+        game_state.event_handler.dispatch_event(Event.EnemyDeadEvent(source, target))
 
 
 class PlaceSkullEffect(Effect):

@@ -130,7 +130,6 @@ class Board:
                 self.overlay_rect.x = -self.overlay_width
                 self.text_visible = False
 
-
     def render(self, screen):
         pygame.draw.rect(screen, (181, 101, 29), (self.pos[0], self.pos[1], self.width, self.height))
 
@@ -148,6 +147,7 @@ class Board:
         for card in hand_cards:
             card.render(screen)
         self.render_select_text(screen)
+        self.game_state.current_player.render_my_turn_overlay(screen)
         for selectable in self.game_state.selectables:
             selectable.render_select_overlay(screen)
 
@@ -195,7 +195,7 @@ class Board:
             name_text = self.font.render(card_name, True, (0, 0, 0))
             name_rect = name_text.get_rect(center=(self.overlay_rect.centerx, self.overlay_rect.centery - 40))  # moved name up
 
-            screen.blit(name_text, name_rect)
+            self.draw_multiline_text(screen, card_name, self.font, (0, 0, 0), name_rect)
 
             effect_rect = pygame.Rect(self.overlay_rect.x + 10, self.overlay_rect.centery - 20, self.overlay_rect.width - 20, 100)
             reward_rect = pygame.Rect(self.overlay_rect.x + 10, self.overlay_rect.centery - 20 + effect_rect.height + 20, self.overlay_rect.width - 20, 100)

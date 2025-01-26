@@ -60,8 +60,8 @@ class CardDrawnEvent(Event):
 
 
 class EnemyDeadEvent(Event):
-    def __init__(self, source):
-        super().__init__("enemy_dead", {"source": source})
+    def __init__(self, source, target):
+        super().__init__("enemy_dead", {"source": source, "target": target})
 
 
 class EnemyDrawnEvent(Event):

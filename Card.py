@@ -13,6 +13,8 @@ class Card:
 
         self.font_size = 18
         self.font = pygame.font.SysFont('Arial', self.font_size)
+        self.small_font_size = 14
+        self.small_font = pygame.font.SysFont('Arial', self.small_font_size)
 
         self.lines = [self.data["name"]]
 
@@ -81,7 +83,6 @@ class Card:
 
         text = self.data["name"]
 
-        self.font_size = 20
         font = self.font
         words = re.split(r"([ -])", text)
         words = [word for word in words if word != " "]
@@ -160,10 +161,30 @@ class HogwartsCard(Card):
         if height is None:
             height = self.height
 
+        type_dict = {"spell": "Spruch",
+                     "ally": "Verbündeter",
+                     "object": "Gegenstand"}
+
+        card_type = self.data["type"]
+
+        type_surface = self.small_font.render(type_dict[card_type], True, (255, 0, 0))
+        type_width = type_surface.get_width()
+        type_height = type_surface.get_height()
+
+        center_x = pos[0] + width // 2
+
+        # Calculate the x-coordinate for centering the health surface
+        type_x = center_x - type_width // 2
+
+        # Calculate the y-coordinate just unter the top line of the box
+        type_y = pos[1] + height // 16
+
+        screen.blit(type_surface, (type_x, type_y))
+
         cost = self.data["cost"]
         if cost == 0:
             return
-        cost_surface = self.font.render(str(cost), True, (255, 0, 0))
+        cost_surface = self.small_font.render(str(cost), True, (255, 0, 0))
         cost_width = cost_surface.get_width()
         cost_height = cost_surface.get_height()
 

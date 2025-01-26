@@ -100,8 +100,7 @@ class GameState(State):
 
     def regular_tick(self):
         if self.dark_arts_cards_left > 0:
-            self.board.play_dark_arts(self)
-            self.dark_arts_cards_left -= 1
+            self.init_choice([self.current_player], 1, {}, self._select_dark_arts_callback, [self.board.dark_arts_stack], "Decke eine Dunkle Künste Karte auf!")
             return
 
         for enemy, is_done in self.enemies_done.items():
@@ -128,8 +127,8 @@ class GameState(State):
     def render(self, screen):
         for player in self.players:
             player.render(screen)
-        self.board.render(screen)
         self.end_turn_button.render(screen)
+        self.board.render(screen)
 
     def init_round(self):
         self.board.draw_shop_cards()
@@ -198,7 +197,7 @@ class GameState(State):
 
         self.init_round()
 
-    def parse_modifier_type(self, modifier_type):
+    def parse_modifier_type(self, modifier_type, source):
         if modifier_type == "no_draw":
             modifier = EffectModifiers.CantDrawCardsModifier()
         elif modifier_type == "no_heal":
@@ -207,11 +206,36 @@ class GameState(State):
             modifier = EffectModifiers.OneBoltPerEnemyModifier()
         elif modifier_type[:3] == "buy":
             modifier = EffectModifiers.BuyCardModifier(modifier_type.split("_")[1])
+        elif modifier_type[:3] == "per":
+            modifer_list = modifier_type.split("_")
+            card_type = modifer_list[1]
+            amount = int(modifer_list[2])
+            effect_type = modifer_list[3]
+            effect = self.parse_modifier_effect_type(effect_type, amount)
+            modifier = EffectModifiers.EffectPerCardTypeModifier(effect, card_type, source, self)
+        elif modifier_type[:11] == "first_enemy":
+            modifier_list = modifier_type.split("_")
+            amount = int(modifier_list[2])
+            effect_type = modifier_list[3]
+            effect = self.parse_modifier_effect_type(effect_type, amount)
+            modifier = EffectModifiers.FirstEnemyKillModifier(effect, source, self)
         else:
-            print("Unknown modifier type" + modifier_type)
+            print("Unknown modifier type " + modifier_type)
             return None
 
         return modifier
+
+    def parse_modifier_effect_type(self, modifier_effect_type, amount=1):
+        if modifier_effect_type == "bolt":
+            effect = Effect.GiveBoltEffect(amount)
+        elif modifier_effect_type == "coin":
+            effect = Effect.GiveCoinsEffect(amount)
+        elif modifier_effect_type == "heal":
+            effect = Effect.HealEffect(amount)
+        else:
+            raise ValueError("Unknown modifier effect type " + modifier_effect_type)
+
+        return effect
 
     def add_modifier(self, modifier, permanent=False):
         if permanent:
@@ -266,7 +290,7 @@ class GameState(State):
         modifier_type_list = card_data.get("modifier")
         if modifier_type_list is not None:
             for modifier_type in modifier_type_list:
-                modifier = self.parse_modifier_type(modifier_type)
+                modifier = self.parse_modifier_type(modifier_type, source)
                 if modifier is not None:
                     self.add_modifier(modifier)
 
@@ -284,7 +308,7 @@ class GameState(State):
         modifier_type_list = card_data.get("modifier")
         if modifier_type_list is not None:
             for modifier_type in modifier_type_list:
-                modifier = self.parse_modifier_type(modifier_type)
+                modifier = self.parse_modifier_type(modifier_type, source)
                 if modifier is not None:
                     self.add_modifier(modifier)
 
@@ -314,8 +338,6 @@ class GameState(State):
         target = event.data['target']
         amount = event.data['amount']
 
-        if isinstance(source, Player.Player):
-            source.bolts -= 1
         if isinstance(target, Enemy.Enemy):
             if isinstance(self.current_player, Player.Ron):
                 self.current_player.apply_hero_effect(event, self)
@@ -355,14 +377,15 @@ class GameState(State):
 
     def handle_enemy_dead_event(self, event):
         source = event.data['source']
+        target = event.data["target"]
 
-        open_enemies_left = [enemy for enemy in self.board.open_enemies if not enemy.is_dead and enemy != source]
+        open_enemies_left = [enemy for enemy in self.board.open_enemies if not enemy.is_dead and enemy != target]
 
         if len(open_enemies_left) + len(self.board.enemy_stack) == 0:
             self.win()
             return
 
-        source.apply_reward(self)
+        target.apply_reward(self)
 
     def handle_enemy_drawn_event(self, event):
         for enemy in self.board.open_enemies:
@@ -722,6 +745,11 @@ class GameState(State):
             self.select_targets(selectors, amount, valid_targets, source, card, effect, self._select_player_callback)
         else:
             self.resolve_choice()
+
+    def _select_dark_arts_callback(self):
+        self.resolve_choice()
+        self.board.play_dark_arts(self)
+        self.dark_arts_cards_left -= 1
 
 
 class StateManager:

@@ -1,5 +1,8 @@
 import random
+
+import Card
 import Effect
+import Enemy
 import Event
 from State import GameState
 import Deck
@@ -19,6 +22,7 @@ class Player:
         self.hand = []
         self.discard_pile = Deck.DiscardPile()
         self.is_dead = False
+        self.cards_played = []
 
         self.pos = (0, 0)
         self.width = 0
@@ -41,6 +45,12 @@ class Player:
         thickness = 4  # Outline thickness
 
         pygame.draw.circle(screen, green, self.character_circle_center, self.circle_radius, thickness)
+
+    def render_my_turn_overlay(self, screen):
+        orange = (255, 255, 0)
+        thickness = 4  # Outline thickness
+
+        pygame.draw.circle(screen, orange, self.character_circle_center, self.circle_radius, thickness)
 
     def is_hovering(self, mouse_pos):
         distance = math.sqrt((mouse_pos[0] - self.character_circle_center[0]) ** 2 + (mouse_pos[1] - self.character_circle_center[1]) ** 2)
@@ -108,6 +118,7 @@ class Player:
             self.hand.remove(card)
             self.discard_pile.append(card)
             card.play(self, game_state)
+            self.cards_played.append(card)
 
     def drop_card(self, card, game_state):
         if card in self.hand:
@@ -126,6 +137,7 @@ class Player:
     def apply_end_turn_effect(self, game_state):
         self.coins = 0
         self.bolts = 0
+        self.cards_played = []
 
         while len(self.hand) > 0:
             self.discard_pile.append(self.hand.pop())
@@ -137,9 +149,12 @@ class Player:
     def apply_damage_effect(self, amount, game_state, event):
         if self.is_dead:
             return
+
+        source = event.data.get("source")
+
         self.take_damage(amount)
         if self.is_dead:
-            game_state.event_handler.dispatch_event(Event.PlayerDeadEvent(event.data.get("source"), self))
+            game_state.event_handler.dispatch_event(Event.PlayerDeadEvent(source, self))
 
     def apply_give_bolts_effect(self, amount, game_state):
         self.give_bolts(amount)
@@ -212,6 +227,7 @@ class Harry(Player):
     def __init__(self):
         super().__init__("Harry Potter")
         self.effect_played = False
+        self.tarnumhang = []
 
     def apply_hero_effect(self, event, game_state):
         if self.effect_played:
@@ -237,6 +253,23 @@ class Harry(Player):
     def apply_end_turn_effect(self, game_state):
         super().apply_end_turn_effect(game_state)
         self.effect_played = False
+        self.tarnumhang = []
+
+    def apply_damage_effect(self, amount, game_state, event):
+        source = event.data.get("source")
+
+        for card in self.hand:
+            if card.data["name"] == "Tarnumhang":
+                if isinstance(source, Enemy.Enemy) or isinstance(source, Card.DarkArtsCard):
+                    if source not in self.tarnumhang:
+                        self.tarnumhang.append(source)
+                        super().apply_damage_effect(1, game_state, event)
+                        break
+                    else:
+                        break
+        else:
+            super().apply_damage_effect(amount, game_state, event)
+
 
 
 class Neville(Player):

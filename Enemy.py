@@ -94,11 +94,15 @@ class Enemy:
         if self.is_dead:
             return
 
+        source = event.data["source"]
+
+        source.bolts -= 1
+
         self.damage()
 
         if self.health <= 0:
             self.is_dead = True
-            game_state.apply_effect(Effect.EnemyDeadEffect(), self, [None])
+            game_state.apply_effect(Effect.EnemyDeadEffect(), source, [self])
 
     def damage(self):
         self.health -= 1

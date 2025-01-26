@@ -34,6 +34,16 @@ class Deck(list):
         else:
             return False
 
+    def render_select_overlay(self, screen):
+        green = (0, 255, 0)  # Green color
+        thickness = 4  # Outline thickness
+
+        # Create a rectangle for the outline
+        outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
+                                   self.width + 2 * thickness, self.height + 2 * thickness)
+
+        pygame.draw.rect(screen, green, outline_rect, thickness)
+
 
 class DiscardPile(Deck):
     def __init__(self):

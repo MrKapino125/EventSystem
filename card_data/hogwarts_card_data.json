@@ -74,7 +74,7 @@
     "belonging": "Ron Weasley",
     "description": "Du bekommst 1 Münze. Für jeden in diesem Zug ausgespielten Verbündeten bekommst du 1 Blitz.",
     "modifier": [
-      "ally_bolt"
+      "per_ally_1_bolt"
     ],
     "effects": [
       {
@@ -92,7 +92,7 @@
     "belonging": "Ron Weasley",
     "description": "Du bekommst 1 Blitz. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 1 Münze.",
     "modifier": [
-      "first_enemy_kill_coin"
+      "first_enemy_1_coin"
     ],
     "effects": [
       {
@@ -151,7 +151,7 @@
     "belonging": "Harry Potter",
     "description": "Du bekommst 1 Blitz. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 1 Münze.",
     "modifier": [
-      "first_enemy_kill_coin"
+      "first_enemy_1_coin"
     ],
     "effects": [
       {
@@ -366,7 +366,7 @@
     "level": 1,
     "description": "Du bekommst 1 Blitz. Wenn du einen Bösewicht besiegst, bekommt ein Held deiner Wahl zusätzlich 2 Herzen.",
     "modifier": [
-      "first_enemy_kill_heal"
+      "first_enemy_2_heal"
     ],
     "effects": [
       {
@@ -629,8 +629,7 @@
     "description": "Du bekommst 2 Blitze. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 2 Münzen.",
     "amount": 2,
     "modifier": [
-      "enemy_kill_coin",
-      "enemy_kill_coin"
+      "first_enemy_2_coin"
     ],
     "effects": [
       {
@@ -979,8 +978,8 @@
     "level": 4,
     "description": "Du bekommst 2 Blitze. Wenn du einen Bösewicht besiegst, bekommst du zusätzlich 1 Münze und 1 Herz.",
     "modifier": [
-      "enemy_kill_coin",
-      "enemy_kill_heal"
+      "first_enemy_1_coin",
+      "first_enemy_1_heal"
     ],
     "effects": [
       {
@@ -1308,7 +1307,7 @@
     "level": 5,
     "description": "Du bekommst 1 Münze. Wenn du einen Gegenstand ausspielst, bekommst du zusätzlich 1 Blitz. Würfle mit dem Ravenclaw-Würfel.",
     "modifier": [
-      "first_object_bolt"
+      "first_object_1_bolt"
     ],
     "effects": [
       {
@@ -1512,7 +1511,8 @@
     "level": 6,
     "description": "Für jeden Spruch, den du diese Runde ausspielst, bekommst du 1 Blitz und 1 Herz.",
     "modifier": [
-      "spell_bolt_heal"
+      "per_spell_1_bolt",
+      "per_spell_1_heal"
     ],
     "effects": []
   },

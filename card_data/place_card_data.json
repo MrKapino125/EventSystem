@@ -12,5 +12,142 @@
         "dark_arts_cards": 1,
         "level": 1,
         "pos": 2
+    },
+    {
+        "name": "Verbotener Wald",
+        "max_skulls": 4,
+        "dark_arts_cards": 1,
+        "level": 2,
+        "pos": 1
+    },
+    {
+        "name": "Quidditch Feld",
+        "max_skulls": 4,
+        "dark_arts_cards": 1,
+        "level": 2,
+        "pos": 2
+    },
+    {
+        "name": "Kammer des Schreckens",
+        "max_skulls": 5,
+        "dark_arts_cards": 2,
+        "level": 2,
+        "pos": 3
+    },
+    {
+        "name": "Hogwarts Express",
+        "max_skulls": 5,
+        "dark_arts_cards": 1,
+        "level": 3,
+        "pos": 1
+    },
+    {
+        "name": "Hogsmeade",
+        "max_skulls": 6,
+        "dark_arts_cards": 2,
+        "level": 3,
+        "pos": 2
+    },
+    {
+        "name": "Heulende Hütte",
+        "max_skulls": 6,
+        "dark_arts_cards": 2,
+        "level": 3,
+        "pos": 3
+    },
+    {
+        "name": "Quidditch Weltmeisterschaft",
+        "max_skulls": 6,
+        "dark_arts_cards": 1,
+        "level": 4,
+        "pos": 1
+    },
+    {
+        "name": "Trimagisches Turnier",
+        "max_skulls": 6,
+        "dark_arts_cards": 2,
+        "level": 4,
+        "pos": 2
+    },
+    {
+        "name": "Friedhof",
+        "max_skulls": 7,
+        "dark_arts_cards": 2,
+        "level": 4,
+        "pos": 3,
+        "turn_effects": [ {"type": "drop_cards", "card_type": "ally", "amount": 1, "target": "all"} ]
+    },
+    {
+        "name": "Askaban",
+        "max_skulls": 7,
+        "dark_arts_cards": 1,
+        "level": 5,
+        "pos": 1
+    },
+    {
+        "name": "Halle der Prophezeiungen",
+        "max_skulls": 7,
+        "dark_arts_cards": 2,
+        "level": 5,
+        "pos": 2
+    },
+    {
+        "name": "Zaubererministerium",
+        "max_skulls": 7,
+        "dark_arts_cards": 2,
+        "level": 5,
+        "pos": 3,
+        "turn_effects": [ {"type": "drop_cards", "card_type": "spell", "amount": 1, "target": "all"} ]
+    },
+    {
+        "name": "Nokturngasse",
+        "max_skulls": 7,
+        "dark_arts_cards": 1,
+        "level": 6,
+        "pos": 1
+    },
+    {
+        "name": "Fuchsbau",
+        "max_skulls": 7,
+        "dark_arts_cards": 2,
+        "level": 6,
+        "pos": 2
+    },
+    {
+        "name": "Astronomieturm",
+        "max_skulls": 8,
+        "dark_arts_cards": 3,
+        "level": 6,
+        "pos": 3,
+        "turn_effects": [ {"type": "drop_cards", "card_type": "object", "amount": 1, "target": "all"} ]
+    },
+    {
+        "name": "Godric's Hollow",
+        "max_skulls": 6,
+        "dark_arts_cards": 1,
+        "level": 7,
+        "pos": 1
+    },
+    {
+        "name": "Gringotts",
+        "max_skulls": 6,
+        "dark_arts_cards": 2,
+        "level": 7,
+        "pos": 2
+    },
+    {
+        "name": "Raum der Wünsche",
+        "max_skulls": 7,
+        "dark_arts_cards": 2,
+        "level": 7,
+        "pos": 3
+    },
+    {
+        "name": "Hogwarts",
+        "max_skulls": 8,
+        "dark_arts_cards": 3,
+        "level": 7,
+        "pos": 4,
+        "turn_effects": [ {"type": "damage", "amount": 2, "target": "all"} ]
     }
 ]

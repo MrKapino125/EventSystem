@@ -18,7 +18,7 @@ info = pygame.display.Info()
 SCREEN_WIDTH = info.current_w
 SCREEN_HEIGHT = info.current_h
 
-SCREEN = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
+SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Harry Potter: Kampf um Hogwarts!")
 
 state_manager = State.StateManager()
