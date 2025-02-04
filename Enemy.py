@@ -309,11 +309,12 @@ class Riddle(Enemy):
         button2.set_text()
 
         for player in game_state.players:
-            if not [card for card in player.hand if card.data["type"] == "ally"]:
-                selectables.remove(button2)
+            selecs = selectables[:]
+            if not [card for card in player.discard_pile if card.data["type"] == "ally"]:
+                selecs.remove(button2)
 
             game_state.init_choice([player], 1, {"game_state": game_state}, self.reward_callback,
-                                   selectables, self.reward_text)
+                                   selecs, self.reward_text, False)
 
     def reward_callback(self, game_state):
         selection = game_state.current_selection

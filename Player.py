@@ -323,7 +323,7 @@ class Ron(Player):
         else:
             self.enemies_attacked[target] += amount
 
-        if target.health == 0 or target.health == 10:
+        if target.health == 0:
             return
 
         if self.enemies_attacked[target] >= 3:

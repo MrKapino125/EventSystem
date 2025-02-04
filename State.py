@@ -1,4 +1,3 @@
-import selectors
 import sys
 
 import Card
@@ -425,9 +424,6 @@ class GameState(State):
         card = event.data["card"]
         card_data = card.data
 
-        if isinstance(self.current_player, Player.Hermione):
-            self.current_player.apply_hero_effect(event, self)
-
         modifier_type_list = card_data.get("modifier")
         if modifier_type_list is not None:
             for modifier_type in modifier_type_list:
@@ -437,6 +433,9 @@ class GameState(State):
 
         for effect_data in card_data["effects"]:
             self._apply_card_effects(source, effect_data, card)
+
+        if isinstance(self.current_player, Player.Hermione):
+            self.current_player.apply_hero_effect(event, self)
 
     def handle_dark_arts_card_played_event(self, event):
         source = event.data["source"]
@@ -490,22 +489,22 @@ class GameState(State):
         source = event.data['source']
         amount = event.data['amount']
 
+        self.board.active_place.remove_skulls(amount)
+
         if "Harry Potter" in self.players_dict:
             self.players_dict["Harry Potter"].apply_hero_effect(event, self)
-
-        self.board.active_place.remove_skulls(amount)
 
     def handle_add_skull_event(self, event):
         source = event.data['source']
         amount = event.data['amount']
+
+        self.board.active_place.add_skulls(amount)
 
         for enemy in self.board.open_enemies:
             if isinstance(enemy, Enemy.Draco):
                 enemy.apply_effect(event, self)
             if isinstance(enemy, Enemy.Lucius):
                 enemy.apply_effect(event, self)
-
-        self.board.active_place.add_skulls(amount)
 
     def handle_bolt_given_event(self, event):
         target = event.data['target']
@@ -555,6 +554,11 @@ class GameState(State):
         card = event.data['card']
         drop_effects = card.data.get("drop_effects")
 
+        target.apply_drop_card_effect(event, self)
+        if drop_effects is not None:
+            for drop_effect in drop_effects:
+                self._apply_card_effects(target, drop_effect, card, target)
+
         for enemy in self.board.open_enemies:
             if isinstance(enemy, Enemy.CrabbeGoyle):
                 enemy.apply_effect(event, self)
@@ -566,21 +570,16 @@ class GameState(State):
                     if card.data["type"] == "spell":
                         self.apply_effect(Effect.GiveCoinsEffect(2), source, [target])
 
-        target.apply_drop_card_effect(event, self)
-        if drop_effects is not None:
-            for drop_effect in drop_effects:
-                self._apply_card_effects(target, drop_effect, card, target)
-
     def handle_player_dead_event(self, event):
         source = event.data['source']
         target = event.data['target']
 
-        self.board.active_place.add_skulls(1)
+        target.die(self, source)
+
+        self.apply_effect(Effect.PlaceSkullEffect(1), source, [None])
         if isinstance(source, Card.DarkArtsCard):
             if source.data["name"] == "AVADA KEDAVRA!":
-                self.board.active_place.add_skulls(1)
-
-        target.die(self, source)
+                self.apply_effect(Effect.PlaceSkullEffect(1), source, [None])
 
     def handle_buy_card_event(self, event):
         source = event.data['source']
@@ -620,7 +619,8 @@ class GameState(State):
         select_text = event.data["select_text"]
 
         options = []
-        for card in target.cards_played:
+        for card in target.discard_pile:
+            print(card.data["type"], card_type)
             if card.data["type"] == card_type:
                 options.append(card)
 
