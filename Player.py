@@ -46,6 +46,11 @@ class Player:
 
         pygame.draw.circle(screen, green, self.character_circle_center, self.circle_radius, thickness)
 
+    def render_selector_overlay(self, screen):
+        blue = (0, 0, 255)
+        thickness = 4
+        pygame.draw.circle(screen, blue, self.character_circle_center, self.circle_radius, thickness)
+
     def render_my_turn_overlay(self, screen):
         orange = (255, 255, 0)
         thickness = 4  # Outline thickness

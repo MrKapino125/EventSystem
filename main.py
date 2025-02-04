@@ -32,7 +32,9 @@ player3 = Player.Ron()
 player4 = Player.Hermione()
 players = [player1, player2, player3, player4]
 players_keys = ["Neville Longbottom", "Harry Potter", "Ron Weasley", "Hermine Granger"]
-game_state = State.GameState(event_handler, dict(zip(players_keys, players)), 1, state_manager, (SCREEN_WIDTH, SCREEN_HEIGHT))
+#game_state = State.GameState(event_handler, dict(zip(players_keys, players)), 1, state_manager, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+state_manager.current_state = State.MenuState(state_manager, event_handler, (SCREEN_WIDTH, SCREEN_HEIGHT), players)
 
 #cant heal in this turn
 #game_state.active_modifiers.append(EffectModifiers.CantHealModifier())
@@ -41,12 +43,12 @@ game_state = State.GameState(event_handler, dict(zip(players_keys, players)), 1,
 
 def tick():
     event_handler.tick()
-    game_state.tick()
+    state_manager.current_state.tick()
 
 
 def render(screen):
     screen.fill((200, 200, 200))  # Light gray background
-    game_state.render(screen)
+    state_manager.current_state.render(screen)
     pygame.display.flip()
 
 

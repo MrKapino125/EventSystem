@@ -94,3 +94,7 @@ class FirstEnemyKillModifier(EffectModifier):
             self.deactivate = True
             game_state.apply_effect(self.effect, source, [source])
         return effect
+
+
+class EffectPerFirstTypeModifier(EffectModifier):
+    pass

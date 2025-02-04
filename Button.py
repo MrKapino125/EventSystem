@@ -10,6 +10,7 @@ class Button:
         self.font_size = 20
         self.font = pygame.font.SysFont("Arial", self.font_size)
         self.text = ""
+        self.selected = False
 
         self.lines = []
 
@@ -48,6 +49,16 @@ class Button:
             screen.blit(text_surface, text_rect)
             y_offset += self.font_size + line_spacing
 
+        if self.selected:
+            green = (0, 255, 0)  # Green color
+            thickness = 4  # Outline thickness
+
+            # Create a rectangle for the outline
+            outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
+                                       self.width + 2 * thickness, self.height + 2 * thickness)
+
+            pygame.draw.rect(screen, green, outline_rect, thickness)
+
     def render_select_overlay(self, screen, pos=None, width=None, height=None):
         self.render(screen, pos, width, height)
 
@@ -82,6 +93,7 @@ class EffectButton(Button):
     def __init__(self, effect):
         super().__init__()
         self.effect = effect
+        self.can_use = True
 
     def set_text(self):
         self.text = f"{self.effect['type']} {self.effect.get('amount')} {self.effect.get('target')}"
@@ -89,3 +101,13 @@ class EffectButton(Button):
 
     def parse_effect_type(self, effect_type):
         pass
+
+
+class CardButton(Button):
+    def __init__(self, card):
+        super().__init__()
+        self.card = card
+
+    def set_text(self):
+        self.text = f"{self.card.data['name']}"
+        self.lines = self.generate_lines()

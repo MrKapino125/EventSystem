@@ -610,14 +610,20 @@
     "description": "Wähle: Du bekommst 2 Blitze oder ALLE Helden bekommen 2 Herzen.",
     "effects": [
       {
-        "type": "give_bolts",
-        "amount": 2,
-        "target": "self"
-      },
-      {
-        "type": "heal",
-        "amount": 2,
-        "target": "all"
+        "type": "choice",
+        "num_effects": 1,
+        "options": [
+          {
+            "type": "give_bolts",
+            "amount": 2,
+            "target": "self"
+          },
+          {
+            "type": "heal",
+            "amount": 2,
+            "target": "all"
+          }
+        ]
       }
     ]
   },
@@ -780,7 +786,7 @@
       },
       {
         "type": "heal",
-        "amount": 1,
+        "amount": 3,
         "target": "choice",
         "num_targets": 1
       }
@@ -801,14 +807,6 @@
       {
         "type": "drop_cards",
         "amount": 1,
-        "target": "self"
-      }
-    ],
-    "drop_effects": [
-      {
-        "type": "give_coins",
-        "condition": "spell",
-        "amount": 2,
         "target": "self"
       }
     ]

@@ -24,6 +24,7 @@ class Board:
 
         self.enemy_dump = Deck.DiscardPile()
         self.dark_arts_dump = Deck.DiscardPile()
+        self.place_dump = Deck.DiscardPile()
 
         self.pos = (0, 0)
         self.width = 0
@@ -47,6 +48,7 @@ class Board:
         random.shuffle(self.hogwarts_stack)
         random.shuffle(self.dark_arts_stack)
         random.shuffle(self.enemy_stack)
+        print(self.enemy_stack)
 
         if 1 <= level <= 2:
             self.open_enemies.append(self.enemy_stack.pop())
@@ -94,11 +96,11 @@ class Board:
         self.overlay_tick()
 
         if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
-            for selectable in game_state.selectables:
+            for selectable in game_state.current_selection.selectables:
                 if selectable.is_hovering(event_handler.mouse_pos):
-                    game_state.selections.append(selectable)
-                    game_state.selections_left -= 1
-                    game_state.selectables.remove(selectable)
+                    game_state.current_selection.selections.append(selectable)
+                    game_state.current_selection.amount -= 1
+                    game_state.current_selection.selectables.remove(selectable)
 
     def overlay_tick(self):
         game_state = self.game_state
@@ -146,15 +148,17 @@ class Board:
         hand_cards = [card for player in self.players for card in player.hand]
         for card in hand_cards:
             card.render(screen)
-        self.render_select_text(screen)
         self.game_state.current_player.render_my_turn_overlay(screen)
-        for selectable in self.game_state.selectables:
-            selectable.render_select_overlay(screen)
+        if self.game_state.current_selection:
+            self.render_select_text(screen)
+            self.game_state.current_selection.selector.render_selector_overlay(screen)
+            for selectable in self.game_state.current_selection.selectables:
+                selectable.render_select_overlay(screen)
 
         self.render_overlay(screen)
 
     def render_select_text(self, screen):
-        text = self.game_state.select_text
+        text = self.game_state.current_selection.select_text
         space_width = self.game_state.card_position_manager.space_width
         space_height = self.game_state.card_position_manager.space_height
         space_pos = self.game_state.card_position_manager.space_pos
@@ -241,7 +245,9 @@ class Board:
         if not self.enemy_stack:
             return
 
-        self.open_enemies.append(self.enemy_stack.pop())
+        new_enemy = self.enemy_stack.pop()
+        self.open_enemies.append(new_enemy)
+        self.game_state.enemies_done[new_enemy] = False
 
     def play_dark_arts(self, game_state):
         if not self.dark_arts_stack:

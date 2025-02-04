@@ -214,6 +214,9 @@ class PlaceCard(Card):
         self.skulls = 0
         self.max_skulls = self.data["max_skulls"]
 
+    def __repr__(self):
+        return super().__repr__() + f" {self.skulls}/{self.max_skulls}"
+
     def render(self, screen, pos=None, width=None, height=None):
         super().render(screen)
 
@@ -288,6 +291,6 @@ def load_dark_arts_cards(level):
                 for _ in range(card.get("amount", 1)):
                     cards.append(DarkArtsCard(card))
 
-        #return [card for card in cards if card.data["name"] == "FLIPENDO!"]
+        #return [card for card in cards if card.data["name"] == "RELASCHIO!"]
         return cards
 

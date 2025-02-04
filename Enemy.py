@@ -1,4 +1,7 @@
 import json
+
+import Button
+import EffectModifiers
 import Event
 import Effect
 import Card
@@ -8,6 +11,7 @@ import pygame
 class Enemy:
     def __init__(self, name, health, level, description, reward_text):
         self.name = name
+        self.max_health = health
         self.health = health
         self.level = level
         self.stunned = False
@@ -21,6 +25,9 @@ class Enemy:
         self.font_size = 20
         self.font = pygame.font.SysFont('Arial', self.font_size)
         self.lines = [self.name]
+
+    def __repr__(self):
+        return self.name + f" {self.health}/{self.max_health}"
 
     def render(self, screen, pos=None, width=None, height=None):
         altered = True
@@ -104,8 +111,17 @@ class Enemy:
             self.is_dead = True
             game_state.apply_effect(Effect.EnemyDeadEffect(), source, [self])
 
+    def apply_heal_effect(self, amount, game_state):
+        self.heal(amount)
+
+        if self.health > self.max_health:
+            self.health = self.max_health
+
     def damage(self):
         self.health -= 1
+
+    def heal(self, amount):
+        self.health += amount
 
     def is_hovering(self, mouse_pos):
         mouse_x, mouse_y = mouse_pos
@@ -195,6 +211,18 @@ class Basilisk(Enemy):
         super().__init__("Basilisk", 8, 2,
                          "Die Helden dürfen keine zusätzlichen Karten ziehen.",
                          "ALLE Helden ziehen eine Karte. Entfernt 1 Totenkopf vom aktuellen Ort.")
+        self.modifier = EffectModifiers.CantDrawCardsModifier()
+
+    def _execute_active(self, game_state):
+        permanent_modifiers = game_state.permanent_modifiers
+        if self.modifier not in permanent_modifiers:
+            permanent_modifiers.append(self.modifier)
+
+    def apply_reward(self, game_state):
+        permanent_modifiers = game_state.permanent_modifiers
+        permanent_modifiers.remove(self.modifier)
+        game_state.apply_effect(Effect.DrawCardEffect(1), self, game_state.players)
+        game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
 
 
 class Lucius(Enemy):
@@ -203,13 +231,100 @@ class Lucius(Enemy):
                          "Jedes Mal, wenn Totenköpfe auf den Ort gelegt werden, wird 1 Blitz von allen Bösewichten entfernt.",
                          "ALLE Helden bekommen 1 Münze. Entfernt 1 Totenkopf vom aktuellen Ort.")
 
+    def _execute_passive(self, event, game_state):
+        if not isinstance(event, Event.SkullPlacedEvent):
+            return
+
+        game_state.apply_effect(Effect.HealEffect(1), self, game_state.board.open_enemies)
+
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.GiveCoinsEffect(1), self, game_state.players)
+        game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
+
 
 class Riddle(Enemy):
     def __init__(self):
         super().__init__('Tom Riddle', 6, 2,
                          "Als aktiver Held wählst du für jeden Verbündeten auf deiner Hand: Du verlierst 2 Herzen oder wirf eine Karte ab.",
                          "ALLE Helden wählen: Du bekommst 2 Herzen oder nimm einen Verbündeten aus deinem Ablagestapel.")
+        self.cards_picked = []
 
+    def _execute_active(self, game_state):
+        current_player = game_state.current_player
+        selectables = [card for card in current_player.hand if card.data["type"] == "ally" and card not in self.cards_picked]
+
+        if not selectables:
+            self.cards_picked = []
+            return
+
+        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, selectables, "Wähle einen Verbündeten!")
+
+    def ability_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        if not selection.selections:
+            return
+
+        selected_ally = selection.selections[0]
+        self.cards_picked.append(selected_ally)
+
+        button1 = Button.EffectButton({"type": "damage", "amount": 2, "target": "self"})
+        button2 = Button.EffectButton({"type": "drop_cards", "amount": 1, "target": "self"})
+        selectables = [button1, button2]
+        game_state.card_position_manager.align_buttons(selectables)
+        button1.set_text()
+        button2.set_text()
+
+        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.effect_callback, selectables, f"Wähle einen Effekt für die Karte {selected_ally}")
+
+
+    def effect_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        button = selection.selections[0]
+        effect = button.effect
+
+        if effect["type"] == "damage":
+            game_state.apply_effect(Effect.DamageEffect(2), self, [game_state.current_player])
+            self._execute_active(game_state)
+        else:
+            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!")
+
+    def drop_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        card = selection.selections[0]
+        game_state.apply_effect(Effect.DropCardEffect(card), self, [game_state.current_player])
+        self._execute_active(game_state)
+
+    def apply_reward(self, game_state):
+        button1 = Button.EffectButton({"type": "heal", "amount": 2, "target": "self"})
+        button2 = Button.EffectButton({"type": "redraw_ally", "amount": 1, "target": "self"})
+        selectables = [button1, button2]
+        game_state.card_position_manager.align_buttons(selectables)
+        button1.set_text()
+        button2.set_text()
+
+        for player in game_state.players:
+            if not [card for card in player.hand if card.data["type"] == "ally"]:
+                selectables.remove(button2)
+
+            game_state.init_choice([player], 1, {"game_state": game_state}, self.reward_callback,
+                                   selectables, self.reward_text)
+
+    def reward_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        button = selection.selections[0]
+        effect = button.effect
+        if effect["type"] == "heal":
+            game_state.apply_effect(Effect.HealEffect(2), self, [selection.selector])
+        else:
+            game_state.apply_effect(Effect.ReDrawEffect(1, "ally", "Wähle einen Verbündeten"), self, [selection.selector])
 
 class Dementor(Enemy):
     def __init__(self):

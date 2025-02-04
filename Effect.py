@@ -93,6 +93,26 @@ class DropCardEffect(Effect):
         game_state.event_handler.dispatch_event(Event.CardDroppedEvent(source, target, self.card))
 
 
+class ReUseEffect(Effect):
+    def __init__(self, amount, card_type, select_text=""):
+        self.amount = amount
+        self.card_type = card_type
+        self.select_text = select_text
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.ReUseEvent(source, target, self.amount, self.card_type, self.select_text))
+
+
+class ReDrawEffect(Effect):
+    def __init__(self, amount, card_type, select_text=""):
+        self.amount = amount
+        self.card_type = card_type
+        self.select_text = select_text
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.ReDrawEvent(source, target, self.amount, self.card_type, self.select_text))
+
+
 class ThrowGryffindorEffect:
     pass
 

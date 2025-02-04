@@ -82,3 +82,13 @@ class PlayerDeadEvent(Event):
 class BuyCardEvent(Event):
     def __init__(self, source, card):
         super().__init__("buy_card", {"source": source, "card": card})
+
+
+class ReUseEvent(Event):
+    def __init__(self, source, target, amount, card_type, select_text=""):
+        super().__init__("reuse", {"source": source, "target": target, "amount": amount, "card_type": card_type, "select_text": select_text})
+
+
+class ReDrawEvent(Event):
+    def __init__(self, source, target, amount, card_type, select_text=""):
+        super().__init__("redraw", {"source": source, "target": target, "amount": amount, "card_type": card_type, "select_text": select_text})

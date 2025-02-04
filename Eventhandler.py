@@ -40,6 +40,9 @@ class EventHandler:
                     self.is_clicked["right"] = False
                     self.is_clicked_lock["right"] = False
 
+    def clear_listeners(self):
+        self.listeners.clear()
+
     def register_listener(self, event_type, listener):
         if event_type not in self.listeners:
             self.listeners[event_type] = []
