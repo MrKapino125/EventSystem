@@ -15,6 +15,7 @@ class Enemy:
         self.health = health
         self.level = level
         self.stunned = False
+        self.stun_count = 0
         self.is_dead = False
         self.description = description
         self.reward_text = reward_text
@@ -77,6 +78,9 @@ class Enemy:
 
         screen.blit(health_surface, (health_x, health_y))
 
+        if self.stunned:
+            self.render_stunned_overlay(screen)
+
     def generate_lines(self):
         text = self.name
 
@@ -96,6 +100,26 @@ class Enemy:
                 current_line = word + " "
         lines.append(current_line)
         return lines
+
+    def render_select_overlay(self, screen):
+        green = (0, 255, 0)  # Green color
+        thickness = 4  # Outline thickness
+
+        # Create a rectangle for the outline
+        outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
+                                   self.width + 2 * thickness, self.height + 2 * thickness)
+
+        pygame.draw.rect(screen, green, outline_rect, thickness)
+
+    def render_stunned_overlay(self, screen):
+        yellow = (255, 255, 0)
+        thickness = 4  # Outline thickness
+
+        # Create a rectangle for the outline
+        outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
+                                   self.width + 2 * thickness, self.height + 2 * thickness)
+
+        pygame.draw.rect(screen, yellow, outline_rect, thickness)
 
     def apply_damage_effect(self, amount, game_state, event):
         if self.is_dead:
@@ -123,6 +147,10 @@ class Enemy:
     def heal(self, amount):
         self.health += amount
 
+    def stun(self):
+        self.stunned = True
+        self.stun_count = 0
+
     def is_hovering(self, mouse_pos):
         mouse_x, mouse_y = mouse_pos
         rect_x, rect_y = self.pos
@@ -136,13 +164,19 @@ class Enemy:
 
     def apply_effect(self, event, game_state):
         if self.stunned:
-            print(f"{self.name} is stunned")
             return
 
         if event is None:
             self._execute_active(game_state)
         else:
             self._execute_passive(event, game_state)
+
+    def apply_end_turn_effect(self, game_state):
+        if self.stunned:
+            self.stun_count += 1
+        if self.stun_count == 4:
+            self.stunned = False
+            self.stun_count = 0
 
     def _execute_active(self, game_state):
         pass
@@ -327,11 +361,19 @@ class Riddle(Enemy):
         else:
             game_state.apply_effect(Effect.ReDrawEffect(1, "ally", "Wähle einen Verbündeten"), self, [selection.selector])
 
+
 class Dementor(Enemy):
     def __init__(self):
         super().__init__('Dementor', 8, 3,
                          "Der aktive Held verliert 2 Herzen.",
                          "ALLE Helden bekommen 2 Herzen. Entfernt 1 Totenkopf vom aktuellen Ort.")
+
+    def _execute_active(self, game_state):
+        game_state.apply_effect(Effect.DamageEffect(2), self, [game_state.current_player])
+
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.HealEffect(2), self, game_state.players)
+        game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
 
 
 class Pettigrew(Enemy):
@@ -339,6 +381,22 @@ class Pettigrew(Enemy):
         super().__init__('Peter Pettigrew', 7, 3,
                          "Der aktive Held muss die oberste Karte seines Nachziehstapels aufdecken. Ist der Wert dieser Karte 1 Münze oder mehr, dann muss er diese Karte abwerfen und 1 Totenkopf auf den aktuellen Ort legen.",
                          "ALLE Helden dürfen ihren Ablagestapel nach einem Spruch durchsuchen und diesen auf die Hand nehmen. Entfernt 1 Totenkopf vom aktuellen Ort.")
+
+    def _execute_active(self, game_state):
+        target = game_state.current_player
+
+        if not target.deck:
+            return
+
+        if target.deck[-1].data["cost"] > 0:
+            card = target.deck.pop()
+            target.hand.append(card)
+            game_state.event_handler.dispatch_event(Event.CardDroppedEvent(self, target, card))
+            game_state.apply_effect(Effect.PlaceSkullEffect(1), self, [None])
+
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
+        game_state.apply_effect(Effect.ReDrawEffect(1, "spell", "Wähle einen Spruch"), self, game_state.players)
 
 
 class Todesser(Enemy):

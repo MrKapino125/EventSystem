@@ -707,15 +707,10 @@
     "amount": 3,
     "effects": [
       {
-        "type": "give_coins",
+        "type": "give_coins_and_heal",
         "amount": 1,
         "target": "choice",
         "num_targets": 1
-      },
-      {
-        "type": "heal",
-        "amount": 1,
-        "target": "last"
       }
     ],
     "drop_effects": [
@@ -760,15 +755,10 @@
     "amount": 3,
     "effects": [
       {
-        "type": "give_coins",
+        "type": "give_coins_and_heal",
         "amount": 1,
         "target": "choice",
         "num_targets": 2
-      },
-      {
-        "type": "heal",
-        "amount": 1,
-        "target": "last"
       }
     ]
   },

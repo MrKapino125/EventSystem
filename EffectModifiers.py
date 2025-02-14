@@ -41,7 +41,6 @@ class OneBoltPerEnemyModifier(EffectModifier):
             return effect
 
         if target in self.bolts_placed_this_turn:
-            print(f"Only one bolt can be placed on {target.name} this turn.")
             return None  # Prevent the effect
         else:
             self.bolts_placed_this_turn[target] = True

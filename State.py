@@ -169,6 +169,8 @@ class GameState(State):
         event_handler.register_listener("buy_card", self.handle_buy_card_event)
         event_handler.register_listener("reuse", self.handle_reuse_event)
         event_handler.register_listener("redraw", self.handle_redraw_event)
+        event_handler.register_listener("draw_top", self.handle_draw_top_event)
+        event_handler.register_listener("coins_health", self.handle_coins_health_event)
 
         self.players_dict = players_dict
         self.players = list(players_dict.values())
@@ -302,6 +304,8 @@ class GameState(State):
             self.enemies += [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Quirrell()]
         if self.level >= 2:
             self.enemies += [Enemy.Basilisk(), Enemy.Lucius(), Enemy.Riddle()]
+        if self.level >= 3:
+            self.enemies += [Enemy.Dementor(), Enemy.Pettigrew()]
 
         #self.enemies = [Enemy.Riddle()]
 
@@ -335,6 +339,11 @@ class GameState(State):
                 player.is_dead = False
                 player.health = 10
 
+        for player in self.players:
+            player.reset_effect()
+        for enemy in self.board.open_enemies:
+            enemy.apply_end_turn_effect(self)
+
         self.init_round()
 
     def parse_modifier_type(self, modifier_type, source):
@@ -342,7 +351,7 @@ class GameState(State):
             modifier = EffectModifiers.CantDrawCardsModifier()
         elif modifier_type == "no_heal":
             modifier = EffectModifiers.CantHealModifier()
-        elif modifier_type == "one_bolt":
+        elif modifier_type == "one_bolt_enemy":
             modifier = EffectModifiers.OneBoltPerEnemyModifier()
         elif modifier_type[:3] == "buy":
             modifier = EffectModifiers.BuyCardModifier(modifier_type.split("_")[1])
@@ -393,7 +402,7 @@ class GameState(State):
         """Checks if an effect can be applied, considering modifiers."""
         modified_effect = effect
         for modifier in self.active_modifiers + self.permanent_modifiers:
-            modified_effect = modifier.modify(modified_effect, source, target, self)
+            modified_effect = modifier.modify(modified_effect, self, source, [target])
             if modified_effect is None:
                 return False  # Effect is blocked by a modifier
         return True  # Effect is allowed
@@ -434,7 +443,7 @@ class GameState(State):
         for effect_data in card_data["effects"]:
             self._apply_card_effects(source, effect_data, card)
 
-        if isinstance(self.current_player, Player.Hermione):
+        if isinstance(self.current_player, Player.Hermione) and card_data["type"] == "spell":
             self.current_player.apply_hero_effect(event, self)
 
     def handle_dark_arts_card_played_event(self, event):
@@ -620,11 +629,39 @@ class GameState(State):
 
         options = []
         for card in target.discard_pile:
-            print(card.data["type"], card_type)
             if card.data["type"] == card_type:
                 options.append(card)
 
         self.select_card([target], amount, options, source, select_text, False)
+
+    def handle_draw_top_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+        card_type = event.data['card_type']
+
+        if not target.deck:
+            return
+
+        if card_type == "value":
+            if target.deck[-1].data["cost"] > 0:
+                card = target.deck.pop()
+                target.hand.append(card)
+                self.event_handler.dispatch_event(Event.CardDroppedEvent(source, target, card))
+                self.apply_effect(Effect.DamageEffect(2), source, [target])
+        else:
+            if target.deck[-1].data["type"] == card_type:
+                card = target.deck.pop()
+                target.hand.append(card)
+                self.event_handler.dispatch_event(Event.CardDroppedEvent(source, target, card))
+                self.apply_effect(Effect.DamageEffect(2), source, [target])
+
+    def handle_coins_health_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+        amount = event.data['amount']
+
+        self.apply_effect(Effect.HealEffect(amount), source, [target])
+        self.apply_effect(Effect.GiveCoinsEffect(amount), source, [target])
 
     # PRIVATE #
 
@@ -645,7 +682,7 @@ class GameState(State):
                 self._apply_effect_choice(choice_targets, source, effect_data, card)
             return
 
-        effect = self.get_effect_from_type(effect_type, effect_data)
+        effect = self.get_effect_from_type(effect_type, effect_data, card)
 
         target_type = effect_data.get("target")
         if target_type is None:
@@ -655,6 +692,10 @@ class GameState(State):
 
         if effect == "drop_cards":
             self.select_drop_cards(targets, effect_data.get("card_type"), effect_data.get("amount", 1), source)
+            return
+
+        if effect == "stun":
+            self.select_stun(active_player, card.data["description"])
             return
 
         if targets == "choice":
@@ -673,6 +714,8 @@ class GameState(State):
             effect = Effect.GiveCoinsEffect(effect_data["amount"])
         elif effect_type == "heal":
             effect = Effect.HealEffect(effect_data["amount"])
+        elif effect_type == "give_coins_and_heal":
+            effect = Effect.GiveCoinsHealEffect(effect_data["amount"])
         elif effect_type == "give_bolts":
             effect = Effect.GiveBoltEffect(effect_data["amount"])
         elif effect_type == "damage":
@@ -685,6 +728,10 @@ class GameState(State):
             effect = Effect.PlaceSkullEffect(effect_data["amount"])
         elif effect_type == "drop_cards":
             effect = "drop_cards"
+        elif effect_type == "draw_top":
+            effect = Effect.DrawTopEffect(effect_data["card_type"])
+        elif effect_type == "stun":
+            effect = "stun"
         elif effect_type[:5] == "reuse":
             select_text = ""
             if card is not None:
@@ -701,7 +748,6 @@ class GameState(State):
             raise ValueError(f"Unknown effect type: {effect_type}")
 
         return effect
-
 
     def _apply_effect_choice(self, choice_targets, source, effect_data, card):
         card_data = card.data
@@ -934,7 +980,20 @@ class GameState(State):
 
             self.init_choice([selector], amount, selection_kwargs, callback, selectables, select_text)
 
+    def select_stun(self, selector, select_text):
+        select_text = select_text
+
+        selectables = self.board.open_enemies
+        self.init_choice([selector], 1, {}, self._stun_callback, selectables, select_text)
+
     # CALLBACKS
+
+    def _stun_callback(self):
+        selections = self.current_selection.selections
+        self.resolve_choice()
+
+        for enemy in selections:
+            enemy.stun()
 
     def _drop_cards_callback(self, source, amount, card_type):
         player = self.current_selection.selector

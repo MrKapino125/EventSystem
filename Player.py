@@ -148,6 +148,9 @@ class Player:
             self.discard_pile.append(self.hand.pop())
         self.draw_5()
 
+    def reset_effect(self):
+        pass
+
     def apply_heal_effect(self, amount, game_state):
         self.heal(amount)
 
@@ -242,21 +245,22 @@ class Harry(Player):
         effect = Effect.GiveBoltEffect(1)
         if 3 <= game_state.level <= 6:
             available_targets = game_state.get_available_targets_for_effect(effect, self)
-            if available_targets:
-                target = game_state.select_single_target(self, available_targets)
-                game_state.apply_effect(effect, self, [target])
-            else:
-                print("No available targets")
+            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle einen Spieler der einen Blitz erhalten soll")
         if game_state.level == 7:
             available_targets = game_state.get_available_targets_for_effect(effect, self)
-            if available_targets:
-                targets = game_state.select_multiple_targets(self, 2, available_targets)
-                game_state.apply_effect(Effect.GiveBoltEffect(1), self, targets)
-            else:
-                print("No available targets")
+            game_state.init_choice([game_state.current_player], 2, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle 2 Spieler die einen Blitz erhalten sollen")
+
+    def ability_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        for target in selection.selections:
+            game_state.apply_effect(Effect.GiveBoltEffect(1), self, [target])
 
     def apply_end_turn_effect(self, game_state):
         super().apply_end_turn_effect(game_state)
+
+    def reset_effect(self):
         self.effect_played = False
         self.tarnumhang = []
 
@@ -274,7 +278,6 @@ class Harry(Player):
                         break
         else:
             super().apply_damage_effect(amount, game_state, event)
-
 
 
 class Neville(Player):
@@ -302,7 +305,10 @@ class Neville(Player):
 
     def apply_end_turn_effect(self, game_state):
         super().apply_end_turn_effect(game_state)
+
+    def reset_effect(self):
         self.first_heal_given_this_turn = {}
+        self.effect_played = False
 
 
 class Ron(Player):
@@ -331,17 +337,23 @@ class Ron(Player):
             effect = Effect.HealEffect(2)
             if 3 <= game_state.level <= 6:
                 available_targets = game_state.get_available_targets_for_effect(effect, self)
-                if available_targets:
-                    target = game_state.select_single_target(self, available_targets)
-
-                    game_state.apply_effect(effect, self, [target])
-                else:
-                    print("No available targets")
+                game_state.init_choice([game_state.current_player], 1, {"game_state": game_state},
+                                       self.ability_callback, available_targets,
+                                       "Wähle einen Spieler der 2 Herzen erhalten soll")
             elif game_state.level == 7:
                 game_state.apply_effect(effect, self, game_state.players)
 
+    def ability_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        target = selection.selections[0]
+        game_state.apply_effect(Effect.HealEffect(2), self, [target])
+
     def apply_end_turn_effect(self, game_state):
         super().apply_end_turn_effect(game_state)
+
+    def reset_effect(self):
         self.enemies_attacked = {}
         self.effect_played = False
 
@@ -356,22 +368,29 @@ class Hermione(Player):
         if self.effect_played:
             return
 
-        self.spell_played += event.data['amount']
+        self.spell_played += 1
         if self.spell_played >= 4:
             self.effect_played = True
 
             effect = Effect.GiveCoinsEffect(1)
             if 3 <= game_state.level <= 6:
                 available_targets = game_state.get_available_targets_for_effect(effect, self)
-                if available_targets:
-                    target = game_state.select_single_target(self, available_targets)
-
-                    game_state.apply_effect(effect, self, [target])
-                else:
-                    print("No available targets")
+                game_state.init_choice([game_state.current_player], 1, {"game_state": game_state},
+                                       self.ability_callback, available_targets,
+                                       "Wähle einen Spieler der 1 Münze erhalten soll")
             elif game_state.level == 7:
                 game_state.apply_effect(effect, self, game_state.players)
 
+    def ability_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+
+        target = selection.selections[0]
+        game_state.apply_effect(Effect.GiveCoinsEffect(1), self, [target])
+
     def apply_end_turn_effect(self, game_state):
         super().apply_end_turn_effect(game_state)
+
+    def reset_effect(self):
         self.effect_played = False
+        self.spell_played = 0

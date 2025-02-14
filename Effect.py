@@ -46,6 +46,14 @@ class GiveCoinsEffect(Effect):
         game_state.event_handler.dispatch_event(Event.CoinGivenEvent(source, target, self.amount))
 
 
+class GiveCoinsHealEffect(Effect):
+    def __init__(self, amount):
+        self.amount = amount
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.CoinsHealthGivenEvent(source, target, self.amount))
+
+
 class CardPlayEffect(Effect):
     def __init__(self, card, amount=1):
         self.card = card
@@ -111,6 +119,13 @@ class ReDrawEffect(Effect):
 
     def apply(self, source, target, game_state):
         game_state.event_handler.dispatch_event(Event.ReDrawEvent(source, target, self.amount, self.card_type, self.select_text))
+
+class DrawTopEffect(Effect):
+    def __init__(self, card_type):
+        self.card_type = card_type
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.DrawTopEvent(source, target, self.card_type))
 
 
 class ThrowGryffindorEffect:

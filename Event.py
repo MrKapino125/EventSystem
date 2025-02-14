@@ -92,3 +92,13 @@ class ReUseEvent(Event):
 class ReDrawEvent(Event):
     def __init__(self, source, target, amount, card_type, select_text=""):
         super().__init__("redraw", {"source": source, "target": target, "amount": amount, "card_type": card_type, "select_text": select_text})
+
+
+class DrawTopEvent(Event):
+    def __init__(self, source, target, card_type):
+        super().__init__("draw_top", {"source": source, "target": target, "card_type": card_type})
+
+
+class CoinsHealthGivenEvent(Event):
+    def __init__(self, source, target, amount):
+        super().__init__("coins_health", {"source": source, "target": target, "amount": amount})
