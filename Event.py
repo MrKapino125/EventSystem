@@ -65,8 +65,8 @@ class EnemyDeadEvent(Event):
 
 
 class EnemyDrawnEvent(Event):
-    def __init__(self):
-        super().__init__("enemy_drawn", {})
+    def __init__(self, enemy):
+        super().__init__("enemy_drawn", {"enemy": enemy})
 
 
 class PlaceLostEvent(Event):

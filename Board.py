@@ -59,6 +59,10 @@ class Board:
             self.open_enemies.append(self.enemy_stack.pop())
             self.open_enemies.append(self.enemy_stack.pop())
 
+        for enemy in self.open_enemies:
+            if isinstance(enemy, Enemy.Basilisk) or isinstance(enemy, Enemy.Barty) or isinstance(enemy, Enemy.Greyback):
+                self.game_state.permanent_modifiers.append(enemy.modifier)
+
         for _ in range(6):
             self.shop_cards.append(self.hogwarts_stack.pop())
 
@@ -247,6 +251,7 @@ class Board:
         new_enemy = self.enemy_stack.pop()
         self.open_enemies.append(new_enemy)
         self.game_state.enemies_done[new_enemy] = False
+        self.game_state.event_handler.dispatch_event(Event.EnemyDrawnEvent(new_enemy))
 
     def play_dark_arts(self, game_state):
         if not self.dark_arts_stack:

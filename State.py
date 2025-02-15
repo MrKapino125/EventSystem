@@ -240,8 +240,7 @@ class GameState(State):
 
         for enemy, is_done in self.enemies_done.items():
             if not is_done:
-
-                if enemy.__class__._execute_active is Enemy.Enemy._execute_active:
+                if enemy.__class__._execute_active is Enemy.Enemy._execute_active or enemy.stunned:
                     self.enemies_done[enemy] = True
                 else:
                     self.init_choice([self.current_player], 1, {"enemy": enemy}, self._select_enemy_callback,
@@ -275,7 +274,8 @@ class GameState(State):
     def init_round(self):
         self.board.draw_shop_cards()
         while self.enemies_to_draw > 0:
-            self.event_handler.dispatch_event(Event.EnemyDrawnEvent())
+            self.board.draw_enemy()
+            self.enemies_to_draw -= 1
 
         self.dark_arts_cards_left = self.board.active_place.data['dark_arts_cards']
         for enemy in self.board.open_enemies:
@@ -549,12 +549,14 @@ class GameState(State):
         target.apply_reward(self)
 
     def handle_enemy_drawn_event(self, event):
+        enemy = event.data["enemy"]
+
+        if isinstance(enemy, Enemy.Basilisk) or isinstance(enemy, Enemy.Barty) or isinstance(enemy, Enemy.Greyback):
+            self.permanent_modifiers.append(enemy.modifier)
+
         for enemy in self.board.open_enemies:
             if isinstance(enemy, Enemy.Todesser):
                 enemy.apply_effect(event, self)
-
-        self.board.draw_enemy()
-        self.enemies_to_draw -= 1
 
     def handle_place_lost_event(self, event):
         if not self.board.places:

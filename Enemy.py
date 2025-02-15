@@ -251,11 +251,6 @@ class Basilisk(Enemy):
                          "ALLE Helden ziehen eine Karte. Entfernt 1 Totenkopf vom aktuellen Ort.")
         self.modifier = EffectModifiers.CantDrawCardsModifier()
 
-    def _execute_active(self, game_state):
-        permanent_modifiers = game_state.permanent_modifiers
-        if self.modifier not in permanent_modifiers:
-            permanent_modifiers.append(self.modifier)
-
     def apply_reward(self, game_state):
         permanent_modifiers = game_state.permanent_modifiers
         permanent_modifiers.remove(self.modifier)
@@ -415,6 +410,7 @@ class Barty(Enemy):
         super().__init__('Barty Crouch, Jr.', 7, 4,
                          "Helden können keine Totenköpfe vom aktuellen Ort entfernen.",
                          "Entfernt 2 Totenköpfe vom aktuellen Ort.")
+        self.modifier = EffectModifiers.CantPlaceSkullModifier()
 
 
 class Umbridge(Enemy):
@@ -429,6 +425,7 @@ class Greyback(Enemy):
         super().__init__('Fenrir Greyback', 8, 6,
                          "Helden können keine Herzen bekommen.",
                          "ALLE Helden bekommen 3 Herzen. Entfernt 2 Totenköpfe vom aktuellen Ort.")
+        self.modifier = EffectModifiers.CantHealModifier()
 
 
 class Bellatrix(Enemy):
