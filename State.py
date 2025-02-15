@@ -240,8 +240,12 @@ class GameState(State):
 
         for enemy, is_done in self.enemies_done.items():
             if not is_done:
-                enemy.apply_effect(None, self)
-                self.enemies_done[enemy] = True
+
+                if enemy.__class__._execute_active is Enemy.Enemy._execute_active:
+                    self.enemies_done[enemy] = True
+                else:
+                    self.init_choice([self.current_player], 1, {"enemy": enemy}, self._select_enemy_callback,
+                                 [enemy], "Aktiviere den Effekt des Bösewichts")
                 return
 
         if self.event_handler.is_clicked["left"] and not self.event_handler.is_clicked_lock["left"]:
@@ -477,11 +481,13 @@ class GameState(State):
         target = event.data['target']
         amount = event.data['amount']
 
-        if isinstance(target, Player.Player):
-            if isinstance(self.current_player, Player.Neville):
-                self.current_player.apply_hero_effect(event, self)
+        health = target.health
 
         target.apply_heal_effect(amount, self)
+
+        if isinstance(target, Player.Player):
+            if isinstance(self.current_player, Player.Neville) and 0 < health < 10:
+                self.current_player.apply_hero_effect(event, self)
 
     def handle_damage_event(self, event):
         source = event.data['source']
@@ -498,9 +504,11 @@ class GameState(State):
         source = event.data['source']
         amount = event.data['amount']
 
+        skulls = self.board.active_place.skulls
+
         self.board.active_place.remove_skulls(amount)
 
-        if "Harry Potter" in self.players_dict:
+        if "Harry Potter" in self.players_dict and skulls > 0:
             self.players_dict["Harry Potter"].apply_hero_effect(event, self)
 
     def handle_add_skull_event(self, event):
@@ -1034,6 +1042,12 @@ class GameState(State):
     def _select_dark_arts_callback(self):
         self.board.play_dark_arts(self)
         self.dark_arts_cards_left -= 1
+
+        self.resolve_choice()
+
+    def _select_enemy_callback(self, enemy):
+        enemy.apply_effect(None, self)
+        self.enemies_done[enemy] = True
 
         self.resolve_choice()
 

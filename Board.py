@@ -48,7 +48,6 @@ class Board:
         random.shuffle(self.hogwarts_stack)
         random.shuffle(self.dark_arts_stack)
         random.shuffle(self.enemy_stack)
-        print(self.enemy_stack)
 
         if 1 <= level <= 2:
             self.open_enemies.append(self.enemy_stack.pop())

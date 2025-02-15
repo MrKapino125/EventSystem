@@ -289,9 +289,6 @@ class Neville(Player):
     def apply_hero_effect(self, event, game_state):
         target = event.data['target']
 
-        if target.health == 0 or target.health == 10:
-            return
-
         if 3 <= game_state.level <= 6:
             if not self.first_heal_given_this_turn.get(target, False):
                 self.first_heal_given_this_turn[target] = True

@@ -30,6 +30,9 @@ class Enemy:
     def __repr__(self):
         return self.name + f" {self.health}/{self.max_health}"
 
+    def has_active(self):
+        return True
+
     def render(self, screen, pos=None, width=None, height=None):
         altered = True
         if pos is None:
@@ -133,6 +136,7 @@ class Enemy:
 
         if self.health <= 0:
             self.is_dead = True
+            self.stunned = False
             game_state.apply_effect(Effect.EnemyDeadEffect(), source, [self])
 
     def apply_heal_effect(self, amount, game_state):
