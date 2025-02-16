@@ -250,7 +250,8 @@ class Basilisk(Enemy):
 
     def apply_reward(self, game_state):
         permanent_modifiers = game_state.permanent_modifiers
-        permanent_modifiers.remove(self.modifier)
+        if self.modifier in permanent_modifiers:
+            permanent_modifiers.remove(self.modifier)
         game_state.apply_effect(Effect.DrawCardEffect(1), self, game_state.players)
         game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
 
@@ -258,7 +259,7 @@ class Basilisk(Enemy):
         stunned_pre = self.stunned
         super().apply_end_turn_effect(game_state)
         if stunned_pre and not self.stunned:
-            game_state.permanent_modifiers.add(self.modifier)
+            game_state.permanent_modifiers.append(self.modifier)
     
     def stun(self, game_state):
         super().stun(game_state)
