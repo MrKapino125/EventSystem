@@ -30,9 +30,6 @@ class Enemy:
     def __repr__(self):
         return self.name + f" {self.health}/{self.max_health}"
 
-    def has_active(self):
-        return True
-
     def render(self, screen, pos=None, width=None, height=None):
         altered = True
         if pos is None:
@@ -151,7 +148,7 @@ class Enemy:
     def heal(self, amount):
         self.health += amount
 
-    def stun(self):
+    def stun(self, game_state):
         self.stunned = True
         self.stun_count = 0
 
@@ -256,6 +253,18 @@ class Basilisk(Enemy):
         permanent_modifiers.remove(self.modifier)
         game_state.apply_effect(Effect.DrawCardEffect(1), self, game_state.players)
         game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
+
+    def apply_end_turn_effect(self, game_state):
+        stunned_pre = self.stunned
+        super().apply_end_turn_effect(game_state)
+        if stunned_pre and not self.stunned:
+            game_state.permanent_modifiers.add(self.modifier)
+    
+    def stun(self, game_state):
+        super().stun(game_state)
+        if self.modifier in game_state.permanent_modifiers:
+            game_state.permanent_modifiers.remove(self.modifier)
+
 
 
 class Lucius(Enemy):

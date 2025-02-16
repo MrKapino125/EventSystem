@@ -1003,7 +1003,7 @@ class GameState(State):
         self.resolve_choice()
 
         for enemy in selections:
-            enemy.stun()
+            enemy.stun(self)
 
     def _drop_cards_callback(self, source, amount, card_type):
         player = self.current_selection.selector
