@@ -594,7 +594,6 @@ class GameState(State):
         elif turn_effect["type"] == "drop_cards":
             self.select_drop_cards(self.players, turn_effect["card_type"], 1, new_place)
 
-
     def handle_card_dropped_event(self, event):
         source = event.data['source']
         target = event.data['target']

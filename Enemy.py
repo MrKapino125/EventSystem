@@ -414,9 +414,6 @@ class Todesser(Enemy):
                          "ALLE Helden bekommen 1 Herz. Entfernt 1 Totenkopf vom aktuellen Ort.")
 
     def _execute_passive(self, event, game_state):
-        if not isinstance(event, Event.EnemyDrawnEvent):
-            return
-
         game_state.apply_effect(Effect.DamageEffect(1), self, game_state.players)
 
     def apply_reward(self, game_state):
