@@ -1,3 +1,4 @@
+import random
 import sys
 
 import Card
@@ -171,6 +172,8 @@ class GameState(State):
         event_handler.register_listener("redraw", self.handle_redraw_event)
         event_handler.register_listener("draw_top", self.handle_draw_top_event)
         event_handler.register_listener("coins_health", self.handle_coins_health_event)
+        event_handler.register_listener("coins_draw", self.handle_coins_draw_event)
+        event_handler.register_listener("throw_dice", self.handle_throw_dice_event)
 
         self.players_dict = players_dict
         self.players = list(players_dict.values())
@@ -310,14 +313,13 @@ class GameState(State):
             self.enemies += [Enemy.Basilisk(), Enemy.Lucius(), Enemy.Riddle()]
         if self.level >= 3:
             self.enemies += [Enemy.Dementor(), Enemy.Pettigrew()]
+        if self.level >= 4:
+            self.enemies += [Enemy.Barty(), Enemy.Todesser()]
 
         #self.enemies = [Enemy.Basilisk(), Enemy.CrabbeGoyle()]
 
     def end_turn(self):
         self.current_player.apply_end_turn_effect(self)
-
-        if self.board.active_place.skulls == self.board.active_place.max_skulls:
-            self.event_handler.dispatch_event(Event.PlaceLostEvent())
 
         enemies = []
         for enemy in self.board.open_enemies:
@@ -348,6 +350,9 @@ class GameState(State):
         for enemy in self.board.open_enemies:
             enemy.apply_end_turn_effect(self)
 
+        if self.board.active_place.skulls == self.board.active_place.max_skulls:
+            self.event_handler.dispatch_event(Event.PlaceLostEvent())
+
         self.init_round()
 
     def parse_modifier_type(self, modifier_type, source):
@@ -372,6 +377,13 @@ class GameState(State):
             effect_type = modifier_list[3]
             effect = self.parse_modifier_effect_type(effect_type, amount)
             modifier = EffectModifiers.FirstEnemyKillModifier(effect, source, self)
+        elif modifier_type[:5] == "first":
+            modifer_list = modifier_type.split("_")
+            card_type = modifer_list[1]
+            amount = int(modifer_list[2])
+            effect_type = modifer_list[3]
+            effect = self.parse_modifier_effect_type(effect_type, amount)
+            modifier = EffectModifiers.EffectPerFirstTypeModifier(effect, card_type, source, self)
         else:
             print("Unknown modifier type " + modifier_type)
             return None
@@ -457,6 +469,11 @@ class GameState(State):
 
         if card.data.get("is_unforgivable", False):
             self.dark_arts_cards_left += 1
+
+        if card.data["name"] == "MORSMORDRE!":
+            for enemy in self.board.open_enemies:
+                if isinstance(enemy, Enemy.Todesser):
+                    enemy.apply_effect(event, self)
 
         modifier_type_list = card_data.get("modifier")
         if modifier_type_list is not None:
@@ -554,7 +571,7 @@ class GameState(State):
         if isinstance(enemy, Enemy.Basilisk) or isinstance(enemy, Enemy.Barty) or isinstance(enemy, Enemy.Greyback):
             self.permanent_modifiers.append(enemy.modifier)
 
-        for enemy in self.board.open_enemies:
+        for enemy in [e for e in self.board.open_enemies if not (e is enemy)]:
             if isinstance(enemy, Enemy.Todesser):
                 enemy.apply_effect(event, self)
 
@@ -566,6 +583,17 @@ class GameState(State):
         self.board.place_dump.append(self.board.active_place)
         self.board.active_place = self.board.places.pop()
         self.card_position_manager.realign_board()
+
+        new_place = self.board.active_place
+        turn_effects = new_place.data.get("turn_effects")
+        if turn_effects is None:
+            return
+        turn_effect = turn_effects[0]
+        if turn_effect["type"] == "damage":
+            self.apply_effect(Effect.DamageEffect(2), new_place, self.players)
+        elif turn_effect["type"] == "drop_cards":
+            self.select_drop_cards(self.players, turn_effect["card_type"], 1, new_place)
+
 
     def handle_card_dropped_event(self, event):
         source = event.data['source']
@@ -673,6 +701,38 @@ class GameState(State):
         self.apply_effect(Effect.HealEffect(amount), source, [target])
         self.apply_effect(Effect.GiveCoinsEffect(amount), source, [target])
 
+    def handle_coins_draw_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+        amount = event.data['amount']
+
+        self.apply_effect(Effect.DrawCardEffect(amount), source, [target])
+        self.apply_effect(Effect.GiveCoinsEffect(amount), source, [target])
+
+    def handle_throw_dice_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+        amount = event.data['amount']
+        dice_type = event.data['dice_type']
+        is_evil = event.data['is_evil']
+
+        if dice_type == "choice":
+            select_text = "Wähle einen Würfel"
+            selectables = [Button.Button(dice) for dice in self.valid_dice]
+            self.card_position_manager.align_buttons(selectables)
+            for button in selectables:
+                button.lines = button.generate_lines()
+
+        else:
+            select_text = f"Würfel den {dice_type} Würfel"
+            button = Button.Button("Würfeln")
+            selectables = [button]
+            self.card_position_manager.align_buttons(selectables)
+            button.lines = button.generate_lines()
+
+        for _ in range(amount):
+            self.init_choice([target], 1, {"event": event}, self._select_dice_callback, selectables, select_text)
+
     # PRIVATE #
 
     def _apply_card_effects(self, source, effect_data, card, active_player=None):
@@ -726,6 +786,8 @@ class GameState(State):
             effect = Effect.HealEffect(effect_data["amount"])
         elif effect_type == "give_coins_and_heal":
             effect = Effect.GiveCoinsHealEffect(effect_data["amount"])
+        elif effect_type == "give_coins_draw_cards":
+            effect = Effect.GiveCoinsDrawEffect(effect_data["amount"])
         elif effect_type == "give_bolts":
             effect = Effect.GiveBoltEffect(effect_data["amount"])
         elif effect_type == "damage":
@@ -742,6 +804,8 @@ class GameState(State):
             effect = Effect.DrawTopEffect(effect_data["card_type"])
         elif effect_type == "stun":
             effect = "stun"
+        elif effect_type == "throw_dice":
+            effect = Effect.ThrowDiceEffect(effect_data["dice_type"], effect_data["amount"], isinstance(card, Card.DarkArtsCard))
         elif effect_type[:5] == "reuse":
             select_text = ""
             if card is not None:
@@ -774,6 +838,8 @@ class GameState(State):
             return self.players[:]
         elif target_type == "choice":
             return "choice"
+        elif target_type == "enemies":
+            return self.board.open_enemies[:]
         else:
             raise ValueError(f"Unknown target type: {target_type}")
 
@@ -786,6 +852,22 @@ class GameState(State):
             return self.players
         else:
             raise ValueError(f"Unknown target type: {available_targets_type}")
+
+    def _throw_dice(self, dice_type):
+        valid_out = ["coin", "bolt", "heart", "card"]
+        match dice_type:
+            case "gryffindor":
+                dice = 3 * [valid_out[0]] + [out for out in valid_out if out != valid_out[0]]
+            case "hufflepuff":
+                dice = 3 * [valid_out[2]] + [out for out in valid_out if out != valid_out[2]]
+            case "ravenclaw":
+                dice = 3 * [valid_out[3]] + [out for out in valid_out if out != valid_out[3]]
+            case "slytherin":
+                dice = 3 * [valid_out[1]] + [out for out in valid_out if out != valid_out[1]]
+            case _:
+                raise ValueError(f"Unknown dice type: {dice_type}")
+
+        return random.choice(dice)
 
     # HELPER #
 
@@ -826,85 +908,6 @@ class GameState(State):
                 available_targets.append(target)
 
         return available_targets
-
-    def select_single_target(self, player, valid_targets=None):
-        """Prompts the player to select a single target."""
-        if valid_targets is None:
-            valid_targets = self.players  # Default is all players
-
-        print(f"{player.name}, choose a target:")
-        for i, target in enumerate(valid_targets):
-            print(f"{i + 1}: {target.name}")
-
-        while True:
-            try:
-                choice = int(input("> ")) - 1
-                if 0 <= choice < len(valid_targets):
-                    return valid_targets[choice]
-                else:
-                    print("Invalid choice. Please try again.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
-    def select_multiple_targets(self, player, num_targets, valid_targets=None):
-        """Prompts the player to select multiple targets."""
-        if valid_targets is None:
-            valid_targets = self.players  # Default is all players
-        if num_targets > len(valid_targets):
-            num_targets = len(valid_targets)
-        selected_targets = []
-        print(f"{player.name}, choose {num_targets} targets:")
-        for i, target in enumerate(valid_targets):
-            print(f"{i + 1}: {target.name}")
-
-        while len(selected_targets) < num_targets:
-            try:
-                choice = int(input("> ")) - 1
-                if 0 <= choice < len(valid_targets):
-                    target = valid_targets[choice]
-                    if target in selected_targets:
-                        print("You have already selected that target. Please choose a different one.")
-                    else:
-                        selected_targets.append(target)
-                else:
-                    print("Invalid choice. Please try again.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-        return selected_targets
-
-    def get_effect_from_dice_type(self, dice_type):
-        match dice_type:
-            case "gryffindor":
-                return Effect.ThrowGryffindorEffect()
-            case "hufflepuff":
-                return Effect.ThrowHufflepuffEffect()
-            case "ravenclaw":
-                return Effect.ThrowRavenclawEffect()
-            case "slytherin":
-                return Effect.ThrowSlytherinEffect()
-            case _:
-                raise ValueError(f"Unknown dice type: {dice_type}")
-
-    def choose_dice(self, source):
-        print(f"{source.name}, choose a dice:")
-        for i, dice in enumerate(self.valid_dice):
-            print(f"{i + 1}: {dice}")
-
-        while True:
-            try:
-                choice = int(input("> ")) - 1
-                if 0 <= choice < len(self.valid_dice):
-                    return self.get_effect_from_dice_type(self.valid_dice[choice])
-                else:
-                    print("Invalid choice. Please try again.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
-    def choose_targets(self, source, valid_targets, num_targets):
-        if num_targets == 1:
-            return [self.select_single_target(source, valid_targets)]
-        else:
-            return self.select_multiple_targets(source, num_targets, valid_targets)
 
     def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, prio=True):
         _selectors = selectors[:]
@@ -964,6 +967,11 @@ class GameState(State):
             buttons.append(button)
         self.card_position_manager.align_buttons(buttons)
 
+        if insta_use:
+            select_text = "Spiele eine Karte nochmal!"
+        else:
+            select_text = "Nimm eine Karte auf die Hand!"
+
         kwargs = {"source": source, "amount": amount, "options": options, "insta_use": insta_use}
         callback = self._card_choice_callback
 
@@ -974,9 +982,14 @@ class GameState(State):
             callback = self._drop_cards_callback
         selection_kwargs = {"source": source, "amount": amount, "card_type": card_type}
 
-        select_text = ""
-        if isinstance(source, Card.Card):
-            select_text = source.data["description"]
+        translation = {"ally": "Verbündeten",
+                       "object": "Gegenstand",
+                       "spell": "Spruch"}
+
+        if card_type is not None:
+            select_text = f"Wirf {amount} {translation[card_type]} ab!"
+        else:
+            select_text = f"Wirf {amount} Karten ab!"
 
         for selector in selectors:
             selectables = []
@@ -991,7 +1004,7 @@ class GameState(State):
             self.init_choice([selector], amount, selection_kwargs, callback, selectables, select_text)
 
     def select_stun(self, selector, select_text):
-        select_text = select_text
+        select_text = "Betäube einen Gegner!"
 
         selectables = self.board.open_enemies
         self.init_choice([selector], 1, {}, self._stun_callback, selectables, select_text)
@@ -1039,6 +1052,58 @@ class GameState(State):
         for player in selections:
             self.apply_effect(effect, source, [player])
 
+        self.resolve_choice()
+
+    def _select_dice_callback(self, event):
+        selection = self.current_selection
+        selections = self.current_selection.selections
+        self.resolve_choice()
+
+        source = event.data['source']
+        target = event.data['target']
+        amount = event.data['amount']
+        dice_type = event.data['dice_type']
+        is_evil = event.data['is_evil']
+
+        if dice_type == "choice":
+            dice_type = selections[0].text
+
+        outcome = self._throw_dice(dice_type)
+
+        match outcome:
+            case "coin":
+                if is_evil:
+                    self.apply_effect(Effect.PlaceSkullEffect(1), source, [None])
+                else:
+                    self.apply_effect(Effect.GiveCoinsEffect(1), source, self.players)
+            case "bolt":
+                if is_evil:
+                    self.apply_effect(Effect.DamageEffect(1), source, self.players)
+                else:
+                    self.apply_effect(Effect.GiveBoltEffect(1), source, self.players)
+            case "heart":
+                if is_evil:
+                    self.apply_effect(Effect.HealEffect(1), source, self.board.open_enemies)
+                else:
+                    self.apply_effect(Effect.HealEffect(1), source, self.players)
+            case "card":
+                if is_evil:
+                    self.select_drop_cards(self.players, None, 1, source)
+                else:
+                    self.apply_effect(Effect.DrawCardEffect(1), source, self.players)
+
+        button = Button.Button("Okay!")
+        selectables = [button]
+        self.card_position_manager.align_buttons(selectables)
+        button.lines = button.generate_lines()
+
+        translation = {"coin": "Münze",
+                       "bolt": "Blitz",
+                       "heart": "Herz",
+                       "card": "Karte"}
+        self.init_choice([selection.selector], 1, {}, self._dummy_callback, selectables, f"Resultat: {translation[outcome]}")
+
+    def _dummy_callback(self):
         self.resolve_choice()
 
     def _select_dark_arts_callback(self):

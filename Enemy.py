@@ -267,7 +267,6 @@ class Basilisk(Enemy):
             game_state.permanent_modifiers.remove(self.modifier)
 
 
-
 class Lucius(Enemy):
     def __init__(self):
         super().__init__('Lucius Malfoy', 7, 2,
@@ -312,15 +311,15 @@ class Riddle(Enemy):
         selected_ally = selection.selections[0]
         self.cards_picked.append(selected_ally)
 
-        button1 = Button.EffectButton({"type": "damage", "amount": 2, "target": "self"})
-        button2 = Button.EffectButton({"type": "drop_cards", "amount": 1, "target": "self"})
+        button1 = Button.EffectButton({"type": "drop_cards", "amount": 1, "target": "self"})
+        button2 = Button.EffectButton({"type": "damage", "amount": 2, "target": "self"})
+        
         selectables = [button1, button2]
         game_state.card_position_manager.align_buttons(selectables)
         button1.set_text()
         button2.set_text()
 
         game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.effect_callback, selectables, f"Wähle einen Effekt für die Karte {selected_ally}")
-
 
     def effect_callback(self, game_state):
         selection = game_state.current_selection
@@ -414,6 +413,16 @@ class Todesser(Enemy):
                          "Jedes Mal, wenn Morsmordre! oder ein neuer Bösewicht aufgedeckt wird, verlieren ALLE Helden 1 Herz.",
                          "ALLE Helden bekommen 1 Herz. Entfernt 1 Totenkopf vom aktuellen Ort.")
 
+    def _execute_passive(self, event, game_state):
+        if not isinstance(event, Event.EnemyDrawnEvent):
+            return
+
+        game_state.apply_effect(Effect.DamageEffect(1), self, game_state.players)
+
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.HealEffect(1), self, game_state.players)
+        game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
+
 
 class Barty(Enemy):
     def __init__(self):
@@ -421,6 +430,23 @@ class Barty(Enemy):
                          "Helden können keine Totenköpfe vom aktuellen Ort entfernen.",
                          "Entfernt 2 Totenköpfe vom aktuellen Ort.")
         self.modifier = EffectModifiers.CantPlaceSkullModifier()
+
+    def apply_reward(self, game_state):
+        permanent_modifiers = game_state.permanent_modifiers
+        if self.modifier in permanent_modifiers:
+            permanent_modifiers.remove(self.modifier)
+        game_state.apply_effect(Effect.RemoveSkullEffect(2), self, [None])
+
+    def apply_end_turn_effect(self, game_state):
+        stunned_pre = self.stunned
+        super().apply_end_turn_effect(game_state)
+        if stunned_pre and not self.stunned:
+            game_state.permanent_modifiers.append(self.modifier)
+
+    def stun(self, game_state):
+        super().stun(game_state)
+        if self.modifier in game_state.permanent_modifiers:
+            game_state.permanent_modifiers.remove(self.modifier)
 
 
 class Umbridge(Enemy):

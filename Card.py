@@ -219,8 +219,36 @@ class PlaceCard(Card):
 
     def render(self, screen, pos=None, width=None, height=None):
         super().render(screen)
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
 
         font = pygame.font.Font(None, 20)
+
+        num_place = self.data["pos"]
+        max_place = 3
+        level = self.data["level"]
+        if level == 1:
+            max_place = 2
+        if level == 7:
+            max_place = 4
+
+        type_surface = self.small_font.render(f"{num_place}/{max_place}", True, (255, 0, 0))
+        type_width = type_surface.get_width()
+        type_height = type_surface.get_height()
+
+        center_x = pos[0] + width // 2
+
+        # Calculate the x-coordinate for centering the health surface
+        type_x = center_x - type_width // 2
+
+        # Calculate the y-coordinate just unter the top line of the box
+        type_y = pos[1] + height // 16
+
+        screen.blit(type_surface, (type_x, type_y))
 
         skulls_surface = font.render(f"{self.skulls} / {self.max_skulls}", True, (255, 0, 0))
         skulls_width = skulls_surface.get_width()
@@ -291,6 +319,6 @@ def load_dark_arts_cards(level):
                 for _ in range(card.get("amount", 1)):
                     cards.append(DarkArtsCard(card))
 
-        #return [card for card in cards if card.data["name"] == "RELASCHIO!"]
+        return [card for card in cards if card.data["name"] == "SLYTHERINS ERBE"]
         return cards
 

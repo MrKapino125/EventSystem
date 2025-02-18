@@ -102,3 +102,13 @@ class DrawTopEvent(Event):
 class CoinsHealthGivenEvent(Event):
     def __init__(self, source, target, amount):
         super().__init__("coins_health", {"source": source, "target": target, "amount": amount})
+
+
+class CoinsDrawGivenEvent(Event):
+    def __init__(self, source, target, amount):
+        super().__init__("coins_draw", {"source": source, "target": target, "amount": amount})
+
+
+class ThrowDiceEvent(Event):
+    def __init__(self, source, target, dice_type, amount, is_evil):
+        super().__init__("throw_dice", {"source": source, "target": target, "dice_type": dice_type, "amount": amount, "is_evil": is_evil})

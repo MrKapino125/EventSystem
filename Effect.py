@@ -54,6 +54,14 @@ class GiveCoinsHealEffect(Effect):
         game_state.event_handler.dispatch_event(Event.CoinsHealthGivenEvent(source, target, self.amount))
 
 
+class GiveCoinsDrawEffect(Effect):
+    def __init__(self, amount):
+        self.amount = amount
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.CoinsDrawGivenEvent(source, target, self.amount))
+
+
 class CardPlayEffect(Effect):
     def __init__(self, card, amount=1):
         self.card = card
@@ -120,6 +128,7 @@ class ReDrawEffect(Effect):
     def apply(self, source, target, game_state):
         game_state.event_handler.dispatch_event(Event.ReDrawEvent(source, target, self.amount, self.card_type, self.select_text))
 
+
 class DrawTopEffect(Effect):
     def __init__(self, card_type):
         self.card_type = card_type
@@ -128,17 +137,11 @@ class DrawTopEffect(Effect):
         game_state.event_handler.dispatch_event(Event.DrawTopEvent(source, target, self.card_type))
 
 
-class ThrowGryffindorEffect:
-    pass
+class ThrowDiceEffect(Effect):
+    def __init__(self, dice_type, amount, is_evil):
+        self.dice_type = dice_type
+        self.amount = amount
+        self.is_evil = is_evil
 
-
-class ThrowHufflepuffEffect:
-    pass
-
-
-class ThrowRavenclawEffect:
-    pass
-
-
-class ThrowSlytherinEffect:
-    pass
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.ThrowDiceEvent(source, target, self.dice_type, self.amount, self.is_evil))

@@ -949,7 +949,7 @@
     "level": 4,
     "description": "Du bekommst 2 Münzen. Wenn du einen anderen Verbündeten spielst, bekommst du zusätzlich 2 Herzen.",
     "modifier": [
-      "first_ally_heal"
+      "first_ally_2_heal"
     ],
     "effects": [
       {
@@ -1041,15 +1041,10 @@
     "description": "Zwei Helden deiner Wahl erhalten jeweils 1 Münze und ziehen eine Karte.",
     "effects": [
       {
-        "type": "give_coins",
+        "type": "give_coins_draw_cards",
         "amount": 1,
         "target": "choice",
         "num_targets": 2
-      },
-      {
-        "type": "draw_cards",
-        "amount": 1,
-        "target": "last"
       }
     ]
   },

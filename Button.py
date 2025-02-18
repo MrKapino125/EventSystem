@@ -3,13 +3,13 @@ import re
 
 
 class Button:
-    def __init__(self):
+    def __init__(self, text=""):
         self.pos = (0, 0)
         self.width = 0
         self.height = 0
         self.font_size = 20
         self.font = pygame.font.SysFont("Arial", self.font_size)
-        self.text = ""
+        self.text = text
         self.selected = False
 
         self.lines = []

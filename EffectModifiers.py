@@ -96,4 +96,30 @@ class FirstEnemyKillModifier(EffectModifier):
 
 
 class EffectPerFirstTypeModifier(EffectModifier):
-    pass
+    def __init__(self, effect, card_type, source, game_state):
+        self.effect = effect
+        self.card_type = card_type
+        self.deactivate = False
+        if source is not None:
+            for card in source.cards_played:
+                card_type = card.data["type"]
+                if card_type == self.card_type:
+                    self.deactivate = True
+                    game_state.apply_effect(self.effect, source, [source])
+
+    def modify(self, effect, game_state, source, targets):
+        if self.deactivate:
+            return effect
+
+        if not isinstance(effect, Effect.CardPlayEffect):
+            return effect
+
+        if not isinstance(source, Player.Player):
+            return effect
+
+        card = effect.card
+        card_type = card.data["type"]
+        if card_type == self.card_type:
+            game_state.apply_effect(self.effect, source, [source])
+            self.deactivate = True
+        return effect

@@ -164,7 +164,7 @@
         "level": 4,
         "description": "Entfernt jeweils 2 Blitze von ALLEN Bösewichten.",
         "effects": [
-            {"type": "heal_enemies", "amount": 2}
+            {"type": "heal", "amount": 2, "target": "enemies"}
         ]
     },
     {
@@ -173,7 +173,7 @@
         "description": "Würfelt mit dem Slytherin-Würfel: Blitz = ALLE Helden verlieren 1 Herz. Münze = Legt 1 Totenkopf auf den aktuellen Ort. Herz = Entfernt jeweils 1 Blitz von ALLEN Bösewichten. Karte = ALLE Helden müssen eine Karte abwerfen.",
         "amount": 2,
         "effects": [
-            {"type": "throw_dice", "dice_type": "slytherin","amount": 1}
+            {"type": "throw_dice", "dice_type": "slytherin", "amount": 1, "target": "self"}
         ]
     },
     {
