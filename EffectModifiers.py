@@ -22,9 +22,9 @@ class CantHealModifier(EffectModifier):
         return effect
 
 
-class CantPlaceSkullModifier(EffectModifier):
+class CantRemoveSkullModifier(EffectModifier):
     def modify(self, effect, game_state, source, targets):
-        if isinstance(effect, Effect.PlaceSkullEffect):
+        if isinstance(effect, Effect.RemoveSkullEffect):
             return None
         return effect
 

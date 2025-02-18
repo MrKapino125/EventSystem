@@ -429,7 +429,7 @@ class Barty(Enemy):
         super().__init__('Barty Crouch, Jr.', 7, 4,
                          "Helden können keine Totenköpfe vom aktuellen Ort entfernen.",
                          "Entfernt 2 Totenköpfe vom aktuellen Ort.")
-        self.modifier = EffectModifiers.CantPlaceSkullModifier()
+        self.modifier = EffectModifiers.CantRemoveSkullModifier()
 
     def apply_reward(self, game_state):
         permanent_modifiers = game_state.permanent_modifiers

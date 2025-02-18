@@ -771,7 +771,7 @@ class GameState(State):
         if targets == "choice":
             num_targets = effect_data.get("num_targets", 1)
             available_targets = effect_data.get("available_targets")
-            valid_targets = self._resolve_available_targets(source, available_targets)
+            valid_targets = self._resolve_available_targets(active_player, available_targets)
             if not valid_targets:
                 return None
             self.select_targets([active_player], num_targets, valid_targets, source, card, effect, self._select_player_callback)
@@ -840,6 +840,8 @@ class GameState(State):
             return "choice"
         elif target_type == "enemies":
             return self.board.open_enemies[:]
+        elif target_type == "other":
+            return [p for p in self.players if p != source]
         else:
             raise ValueError(f"Unknown target type: {target_type}")
 

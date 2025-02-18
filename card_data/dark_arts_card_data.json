@@ -147,7 +147,7 @@
         "description": "Der aktive Held bestimmt einen anderen Helden, der 2 Herzen verliert. Deckt eine zusätzliche Dunkle-Künste-Karte auf.",
         "is_unforgivable": true,
         "effects": [
-            {"type": "damage", "amount": 2, "target": "other"}
+            {"type": "damage", "amount": 2, "target": "choice", "available_targets": "other"}
         ]
     },
     {
