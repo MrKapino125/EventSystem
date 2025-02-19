@@ -14,7 +14,7 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.names = self.name.split(" ")
-        self.health = 1
+        self.health = 10
 
         self.coins = 0
         self.bolts = 0
