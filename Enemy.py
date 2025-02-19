@@ -363,7 +363,7 @@ class Riddle(Enemy):
                 selecs.remove(button2)
 
             game_state.init_choice([player], 1, {"game_state": game_state}, self.reward_callback,
-                                   selecs, self.reward_text, self, False)
+                                   selecs, "Wähle einen Effekt", self, False)
 
     def reward_callback(self, game_state):
         selection = game_state.current_selection

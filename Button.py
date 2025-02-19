@@ -198,14 +198,23 @@ class EffectButton(Button):
             elif self.effect["target"] == "all":
                 return f"ALLE Helden erhalten {self.effect['amount']} {bolt}"
 
-        elif self.effect["type"] == "drop_card":
-            if self.effect["amount"] == 1:
-                card = "Karte"
-            else:
-                card = "Karten"
+        elif self.effect["type"] == "drop_cards":
+            translation = {"spell": {1: "Spruch", 2: "Sprüche"},
+                           "ally": {1: "Verbündeten", 2: "Verbündete"},
+                           "object": {1: "Gegenstand", 2: "Gegenstände"},
+                           None: {1: "Karte", 2: "Karten"}}
+            amount = 2 if self.effect["amount"] != 1 else 1
+            card = translation[self.effect.get("card_type")][amount]
+
             if self.effect["target"] == "self":
                 return f"Wirf {self.effect['amount']} {card} ab"
 
+        elif self.effect["type"][:6] == "redraw":
+            card_type = self.effect["type"].split("_")[1]
+            translation = {"spell": "Spruch",
+                           "ally": "Verbündeten",
+                           "object": "Gegenstand"}
+            return f"Nimm einen {translation[card_type]} von deinem Ablagestapel"
 
     def parse_effect_type(self, effect_type):
         pass

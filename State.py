@@ -215,6 +215,9 @@ class GameState(State):
 
         self.enemies_done = dict(zip(self.board.open_enemies, [False for _ in range(len(self.board.open_enemies))]))
 
+        self.card_playing = False
+        self.death_events = []
+
         self.init_round()
 
     def tick(self):
@@ -236,6 +239,8 @@ class GameState(State):
             self.select = True
             self.current_selection = self.selection_pipeline.pop(0)
             return
+
+        self.handle_death()
 
         if self.dark_arts_cards_left > 0:
             self.init_choice([self.current_player], 1, {}, self._select_dark_arts_callback, [self.board.dark_arts_stack], "Decke eine Dunkle Künste Karte auf!", None)
@@ -432,6 +437,11 @@ class GameState(State):
         for target in targets:
             effect.apply(source, target, self)
 
+    def handle_death(self):
+        for event in self.death_events:
+            self.event_handler.dispatch_event(event)
+        self.death_events = []
+
     # EVENTHANDLER #
 
     def handle_card_played_event(self, event):
@@ -439,10 +449,14 @@ class GameState(State):
         card = event.data["card"]
         card_data = card.data
 
+        self.card_playing = True
+
         if isinstance(card, Card.HogwartsCard):
             self.handle_hogwarts_card_played_event(event)
         elif isinstance(card, Card.DarkArtsCard):
             self.handle_dark_arts_card_played_event(event)
+
+        self.card_playing = False
 
     def handle_hogwarts_card_played_event(self, event):
         source = event.data["source"]
@@ -601,6 +615,7 @@ class GameState(State):
         drop_effects = card.data.get("drop_effects")
 
         target.apply_drop_card_effect(event, self)
+        self.card_position_manager.realign_board()
         if drop_effects is not None:
             for drop_effect in drop_effects:
                 self._apply_card_effects(target, drop_effect, card, target)
@@ -723,7 +738,7 @@ class GameState(State):
                 button.lines = button.generate_lines()
 
         else:
-            select_text = f"Würfel den {dice_type} Würfel"
+            select_text = f"Würfel den {dice_type.capitalize()} Würfel"
             button = Button.Button("Würfeln")
             selectables = [button]
             self.card_position_manager.align_buttons(selectables)
@@ -967,9 +982,10 @@ class GameState(State):
         buttons = []
         for option in options:
             button = Button.CardButton(option)
-            button.set_text()
             buttons.append(button)
         self.card_position_manager.align_buttons(buttons)
+        for button in buttons:
+            button.set_text()
 
         if insta_use:
             select_text = "Spiele eine Karte nochmal!"
@@ -1028,6 +1044,7 @@ class GameState(State):
         for card in selections:
             self.apply_effect(Effect.DropCardEffect(card), source, [player])
 
+        self.handle_death()
         self.resolve_choice()
 
     def _effect_choice_callback(self, source, amount, options, card):

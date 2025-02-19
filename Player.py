@@ -14,7 +14,7 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.names = self.name.split(" ")
-        self.health = 10
+        self.health = 1
 
         self.coins = 0
         self.bolts = 0
@@ -165,7 +165,12 @@ class Player:
 
         self.take_damage(amount)
         if self.is_dead:
-            game_state.event_handler.dispatch_event(Event.PlayerDeadEvent(source, self))
+            death_event = Event.PlayerDeadEvent(source, self)
+            if game_state.card_playing:
+                print("hi")
+                game_state.death_events.append(death_event)
+            else:
+                game_state.event_handler.dispatch_event(death_event)
 
     def apply_give_bolts_effect(self, amount, game_state):
         self.give_bolts(amount)
