@@ -238,6 +238,8 @@ class GameState(State):
         if self.selection_pipeline:
             self.select = True
             self.current_selection = self.selection_pipeline.pop(0)
+            if not (self.current_selection.callback is self._drop_cards_callback):
+                self.handle_death()
             return
 
         self.handle_death()
@@ -419,8 +421,9 @@ class GameState(State):
         else:
             self.active_modifiers.remove(modifier)
 
-    def can_use_effect(self, effect, source, target):
+    def can_use_effect(self, effect):
         """Checks if an effect can be applied, considering modifiers."""
+        source = target = self.current_player
         modified_effect = effect
         for modifier in self.active_modifiers + self.permanent_modifiers:
             modified_effect = modifier.modify(modified_effect, self, source, [target])
@@ -917,16 +920,6 @@ class GameState(State):
         for enemy in self.board.enemy_dump + self.board.open_enemies + self.board.enemy_stack:
             print(enemy)
 
-    def get_available_targets_for_effect(self, effect, source, possible_targets=None):
-        available_targets = []
-        if possible_targets is None:
-            possible_targets = self.players
-        for target in possible_targets:
-            if self.can_use_effect(effect, source, target):
-                available_targets.append(target)
-
-        return available_targets
-
     def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, source, prio=True):
         if source is not None:
             select_text = source.get_name() + ": " + select_text
@@ -960,7 +953,7 @@ class GameState(State):
     def select_effect(self, selectors, amount, options, source, card, callback=None):
         buttons = []
         for option in options:
-            button = Button.EffectButton(option)
+            button = Button.EffectButton(option, self)
             buttons.append(button)
         self.card_position_manager.align_buttons(buttons)
         for button in buttons:
@@ -1111,7 +1104,9 @@ class GameState(State):
                     self.apply_effect(Effect.HealEffect(1), source, self.players)
             case "card":
                 if is_evil:
-                    self.select_drop_cards(self.players, None, 1, source)
+                    players = self.players
+                    players.reverse()
+                    self.select_drop_cards(players, None, 1, source)
                 else:
                     self.apply_effect(Effect.DrawCardEffect(1), source, self.players)
 

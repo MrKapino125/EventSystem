@@ -316,8 +316,8 @@ class Riddle(Enemy):
         selected_ally = selection.selections[0]
         self.cards_picked.append(selected_ally)
 
-        button1 = Button.EffectButton({"type": "drop_cards", "amount": 1, "target": "self"})
-        button2 = Button.EffectButton({"type": "damage", "amount": 2, "target": "self"})
+        button1 = Button.EffectButton({"type": "drop_cards", "amount": 1, "target": "self"}, game_state)
+        button2 = Button.EffectButton({"type": "damage", "amount": 2, "target": "self"}, game_state)
         
         selectables = [button1, button2]
         game_state.card_position_manager.align_buttons(selectables)
@@ -348,8 +348,8 @@ class Riddle(Enemy):
         self._execute_active(game_state)
 
     def apply_reward(self, game_state):
-        button1 = Button.EffectButton({"type": "heal", "amount": 2, "target": "self"})
-        button2 = Button.EffectButton({"type": "redraw_ally", "amount": 1, "target": "self"})
+        button1 = Button.EffectButton({"type": "heal", "amount": 2, "target": "self"}, game_state)
+        button2 = Button.EffectButton({"type": "redraw_ally", "amount": 1, "target": "self"}, game_state)
         selectables = [button1, button2]
         game_state.card_position_manager.align_buttons(selectables)
         button1.set_text()

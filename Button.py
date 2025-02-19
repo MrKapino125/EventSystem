@@ -1,6 +1,8 @@
 import pygame
 import re
 
+from Effect import Effect
+
 
 class Button:
     def __init__(self, text=""):
@@ -136,10 +138,32 @@ class Button:
 
 
 class EffectButton(Button):
-    def __init__(self, effect):
+    def __init__(self, effect, game_state):
         super().__init__()
         self.effect = effect
         self.can_use = True
+        self.game_state = game_state
+
+    def render(self, screen, pos=None, width=None, height=None):
+        super().render(screen, pos, width, height)
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
+
+        effect = self.game_state.get_effect_from_type(self.effect["type"], self.effect)
+        if not isinstance(effect, Effect):
+            return
+        if not self.game_state.can_use_effect(effect):
+            self.render_x(screen, pos, width, height)
+
+    def render_x(self, screen, pos, width, height):
+        gray = (128, 128, 128)  # Graue Farbe
+        overlay = pygame.Surface((width, height), pygame.SRCALPHA)  # Transparente Oberfläche
+        overlay.fill((*gray, 128))  # Füllfarbe mit Alpha-Wert für Transparenz (128 von 255)
+        screen.blit(overlay, pos)
 
     def set_text(self):
         self.text = self.generate_effect_text()
@@ -147,7 +171,6 @@ class EffectButton(Button):
             self.text = f"{self.effect['type']} {self.effect.get('amount')} {self.effect.get('target')}"
 
         self.lines = self.generate_lines()
-        print(self.lines)
 
     def generate_effect_text(self):
         if self.effect["type"] == "damage":
@@ -156,11 +179,11 @@ class EffectButton(Button):
             else:
                 heart = "Herzen"
             if self.effect["target"] == "self":
-                return f"Du verlierst {self.effect['amount']} {heart}"
+                return f"Du verlierst {self.effect['amount']} {heart}!"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl verliert {self.effect['amount']} {heart}"
+                return f"Ein Held deiner Wahl verliert {self.effect['amount']} {heart}!"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden verlieren {self.effect['amount']} {heart}"
+                return f"ALLE Helden verlieren {self.effect['amount']} {heart}!"
 
         elif self.effect["type"] == "heal":
             if self.effect["amount"] == 1:
@@ -168,11 +191,11 @@ class EffectButton(Button):
             else:
                 heart = "Herzen"
             if self.effect["target"] == "self":
-                return f"Du erhältst {self.effect['amount']} {heart}"
+                return f"Du erhältst {self.effect['amount']} {heart}!"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {heart}"
+                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {heart}!"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden erhalten {self.effect['amount']} {heart}"
+                return f"ALLE Helden erhalten {self.effect['amount']} {heart}!"
 
         elif self.effect["type"] == "give_coins":
             if self.effect["amount"] == 1:
@@ -180,11 +203,11 @@ class EffectButton(Button):
             else:
                 coin = "Münzen"
             if self.effect["target"] == "self":
-                return f"Du erhältst {self.effect['amount']} {coin}"
+                return f"Du erhältst {self.effect['amount']} {coin}!"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {coin}"
+                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {coin}!"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden erhalten {self.effect['amount']} {coin}"
+                return f"ALLE Helden erhalten {self.effect['amount']} {coin}!"
 
         elif self.effect["type"] == "give_bolts":
             if self.effect["amount"] == 1:
@@ -192,11 +215,11 @@ class EffectButton(Button):
             else:
                 bolt = "Blitze"
             if self.effect["target"] == "self":
-                return f"Du erhältst {self.effect['amount']} {bolt}"
+                return f"Du erhältst {self.effect['amount']} {bolt}!"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {bolt}"
+                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {bolt}!"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden erhalten {self.effect['amount']} {bolt}"
+                return f"ALLE Helden erhalten {self.effect['amount']} {bolt}!"
 
         elif self.effect["type"] == "drop_cards":
             translation = {"spell": {1: "Spruch", 2: "Sprüche"},
@@ -207,14 +230,23 @@ class EffectButton(Button):
             card = translation[self.effect.get("card_type")][amount]
 
             if self.effect["target"] == "self":
-                return f"Wirf {self.effect['amount']} {card} ab"
+                return f"Wirf {self.effect['amount']} {card} ab!"
+
+        elif self.effect["type"] == "draw_cards":
+            if self.effect["amount"] == 1:
+                card = "Karte"
+            else:
+                card = "Karten"
+
+            if self.effect["target"] == "self":
+                return f"Ziehe {self.effect['amount']} {card}!"
 
         elif self.effect["type"][:6] == "redraw":
             card_type = self.effect["type"].split("_")[1]
             translation = {"spell": "Spruch",
                            "ally": "Verbündeten",
                            "object": "Gegenstand"}
-            return f"Nimm einen {translation[card_type]} von deinem Ablagestapel"
+            return f"Nimm einen {translation[card_type]} von deinem Ablagestapel!"
 
     def parse_effect_type(self, effect_type):
         pass

@@ -250,12 +250,10 @@ class Harry(Player):
             return
 
         self.effect_played = True
-        effect = Effect.GiveBoltEffect(1)
+        available_targets = game_state.players
         if 3 <= game_state.level <= 6:
-            available_targets = game_state.get_available_targets_for_effect(effect, self)
             game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle einen Spieler der einen Blitz erhalten soll", self)
         if game_state.level == 7:
-            available_targets = game_state.get_available_targets_for_effect(effect, self)
             game_state.init_choice([game_state.current_player], 2, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle 2 Spieler die einen Blitz erhalten sollen", self)
 
     def ability_callback(self, game_state):
@@ -341,7 +339,7 @@ class Ron(Player):
             self.effect_played = True
             effect = Effect.HealEffect(2)
             if 3 <= game_state.level <= 6:
-                available_targets = game_state.get_available_targets_for_effect(effect, self)
+                available_targets = game_state.players
                 game_state.init_choice([game_state.current_player], 1, {"game_state": game_state},
                                        self.ability_callback, available_targets,
                                        "Wähle einen Spieler der 2 Herzen erhalten soll", self)
@@ -379,7 +377,7 @@ class Hermione(Player):
 
             effect = Effect.GiveCoinsEffect(1)
             if 3 <= game_state.level <= 6:
-                available_targets = game_state.get_available_targets_for_effect(effect, self)
+                available_targets = game_state.players
                 game_state.init_choice([game_state.current_player], 1, {"game_state": game_state},
                                        self.ability_callback, available_targets,
                                        "Wähle einen Spieler der 1 Münze erhalten soll", self)
