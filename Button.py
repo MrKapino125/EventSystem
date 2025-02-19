@@ -168,7 +168,7 @@ class EffectButton(Button):
             else:
                 heart = "Herzen"
             if self.effect["target"] == "self":
-                return f"Du erhälst {self.effect['amount']} {heart}"
+                return f"Du erhältst {self.effect['amount']} {heart}"
             elif self.effect["target"] == "choice":
                 return f"Ein Held deiner Wahl erhält {self.effect['amount']} {heart}"
             elif self.effect["target"] == "all":
@@ -180,7 +180,7 @@ class EffectButton(Button):
             else:
                 coin = "Münzen"
             if self.effect["target"] == "self":
-                return f"Du erhälst {self.effect['amount']} {coin}"
+                return f"Du erhältst {self.effect['amount']} {coin}"
             elif self.effect["target"] == "choice":
                 return f"Ein Held deiner Wahl erhält {self.effect['amount']} {coin}"
             elif self.effect["target"] == "all":
@@ -192,7 +192,7 @@ class EffectButton(Button):
             else:
                 bolt = "Blitze"
             if self.effect["target"] == "self":
-                return f"Du erhälst {self.effect['amount']} {bolt}"
+                return f"Du erhältst {self.effect['amount']} {bolt}"
             elif self.effect["target"] == "choice":
                 return f"Ein Held deiner Wahl erhält {self.effect['amount']} {bolt}"
             elif self.effect["target"] == "all":
