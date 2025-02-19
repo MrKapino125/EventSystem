@@ -356,7 +356,6 @@ class Riddle(Enemy):
         button2.set_text()
 
         players = game_state.players[:]
-        players.reverse()
         for player in players:
             selecs = selectables[:]
             if not [card for card in player.discard_pile if card.data["type"] == "ally"]:
@@ -411,7 +410,9 @@ class Pettigrew(Enemy):
 
     def apply_reward(self, game_state):
         game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
-        game_state.apply_effect(Effect.ReDrawEffect(1, "spell", "Wähle einen Spruch"), self, game_state.players)
+        players = game_state.players[:]
+        players.reverse()
+        game_state.apply_effect(Effect.ReDrawEffect(1, "spell", "Wähle einen Spruch"), self, players)
 
 
 class Todesser(Enemy):
@@ -494,6 +495,7 @@ class Voldemort3(Enemy):
         super().__init__('Lord Voldemort', 20, 7,
                          "Legt 1 Totenkopf auf den aktuellen Ort. Jedes Mal, wenn Totenköpfe vom Ort entfernt werden, verlieren ALLE Helden 1 Herz.",
                          "Die Helden gewinnen!")
+
 
 def load_enemies(level):
     with open("enemies.json", "r", encoding="UTF-8") as f:
