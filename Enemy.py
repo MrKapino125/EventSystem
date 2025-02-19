@@ -22,6 +22,8 @@ class Enemy:
         self.pos = (0, 0)
         self.width = 500
         self.height = 250
+        self.color = (0,0,0)
+        self.back_color = (255, 255, 255)
 
         self.font_size = 20
         self.font = pygame.font.SysFont('Arial', self.font_size)
@@ -29,6 +31,9 @@ class Enemy:
 
     def __repr__(self):
         return self.name + f" {self.health}/{self.max_health}"
+
+    def get_name(self):
+        return self.name
 
     def render(self, screen, pos=None, width=None, height=None):
         altered = True
@@ -43,11 +48,11 @@ class Enemy:
             altered = False
 
         fill_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, width, height))
+        pygame.draw.rect(fill_surface, (*self.back_color, 128), (0, 0, width, height))
 
         screen.blit(fill_surface, (pos[0], pos[1]))
 
-        pygame.draw.rect(screen, (255, 0, 0), (pos[0], pos[1], width, height), 2)
+        pygame.draw.rect(screen, self.color, (pos[0], pos[1], width, height), 2)
 
         if altered:
             lines = self.generate_lines()
@@ -56,14 +61,14 @@ class Enemy:
         y_offset = 0
         line_spacing = 5  # spacing between lines
         for line in lines:
-            text_surface = self.font.render(line, True, (255, 0, 0))
+            text_surface = self.font.render(line, True, self.color)
             text_rect = text_surface.get_rect(center=(pos[0] + width // 2,
                                                       pos[1] + height // 2 + y_offset - (len(lines) - 1) * (
                                                                   self.font_size + line_spacing) // 2))  # vertical align
             screen.blit(text_surface, text_rect)
             y_offset += self.font_size + line_spacing
 
-        health_surface = self.font.render(str(self.health), True, (255, 0, 0))
+        health_surface = self.font.render(str(self.health), True, self.color)
         health_width = health_surface.get_width()
         health_height = health_surface.get_height()
 
@@ -299,7 +304,7 @@ class Riddle(Enemy):
             self.cards_picked = []
             return
 
-        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, selectables, "Wähle einen Verbündeten!")
+        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, selectables, "Wähle einen Verbündeten!", self)
 
     def ability_callback(self, game_state):
         selection = game_state.current_selection
@@ -319,7 +324,7 @@ class Riddle(Enemy):
         button1.set_text()
         button2.set_text()
 
-        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.effect_callback, selectables, f"Wähle einen Effekt für die Karte {selected_ally}")
+        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.effect_callback, selectables, f"Wähle einen Effekt für die Karte {selected_ally}", self)
 
     def effect_callback(self, game_state):
         selection = game_state.current_selection
@@ -332,7 +337,7 @@ class Riddle(Enemy):
             game_state.apply_effect(Effect.DamageEffect(2), self, [game_state.current_player])
             self._execute_active(game_state)
         else:
-            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!")
+            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!", self)
 
     def drop_callback(self, game_state):
         selection = game_state.current_selection
@@ -350,13 +355,15 @@ class Riddle(Enemy):
         button1.set_text()
         button2.set_text()
 
-        for player in game_state.players:
+        players = game_state.players[:]
+        players.reverse()
+        for player in players:
             selecs = selectables[:]
             if not [card for card in player.discard_pile if card.data["type"] == "ally"]:
                 selecs.remove(button2)
 
             game_state.init_choice([player], 1, {"game_state": game_state}, self.reward_callback,
-                                   selecs, self.reward_text, False)
+                                   selecs, self.reward_text, self, False)
 
     def reward_callback(self, game_state):
         selection = game_state.current_selection

@@ -238,7 +238,7 @@ class GameState(State):
             return
 
         if self.dark_arts_cards_left > 0:
-            self.init_choice([self.current_player], 1, {}, self._select_dark_arts_callback, [self.board.dark_arts_stack], "Decke eine Dunkle Künste Karte auf!")
+            self.init_choice([self.current_player], 1, {}, self._select_dark_arts_callback, [self.board.dark_arts_stack], "Decke eine Dunkle Künste Karte auf!", None)
             return
 
         for enemy, is_done in self.enemies_done.items():
@@ -247,7 +247,7 @@ class GameState(State):
                     self.enemies_done[enemy] = True
                 else:
                     self.init_choice([self.current_player], 1, {"enemy": enemy}, self._select_enemy_callback,
-                                 [enemy], "Aktiviere den Effekt des Bösewichts")
+                                 [enemy], "Aktiviere den Effekt des Bösewichts", None)
                 return
 
         if self.event_handler.is_clicked["left"] and not self.event_handler.is_clicked_lock["left"]:
@@ -730,7 +730,7 @@ class GameState(State):
             button.lines = button.generate_lines()
 
         for _ in range(amount):
-            self.init_choice([target], 1, {"event": event}, self._select_dice_callback, selectables, select_text)
+            self.init_choice([target], 1, {"event": event}, self._select_dice_callback, selectables, select_text, source)
 
     # PRIVATE #
 
@@ -910,7 +910,9 @@ class GameState(State):
 
         return available_targets
 
-    def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, prio=True):
+    def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, source, prio=True):
+        if source is not None:
+            select_text = source.get_name() + ": " + select_text
         _selectors = selectors[:]
         self.select = True
         if prio:
@@ -936,7 +938,7 @@ class GameState(State):
         selection_kwargs = {"amount": amount, "valid_targets": valid_targets, "source": source, "card": card, "effect": effect}
 
         #print(selectors, amount, selection_kwargs, callback, selectables, select_text)
-        self.init_choice(selectors, amount, selection_kwargs, callback, selectables, select_text)
+        self.init_choice(selectors, amount, selection_kwargs, callback, selectables, select_text, source)
 
     def select_effect(self, selectors, amount, options, source, card, callback=None):
         buttons = []
@@ -958,7 +960,7 @@ class GameState(State):
                         if not [card for card in selector.hand if card.data["type"] == button.effect["card_type"]]:
                             selectables = [s for s in selectables if s != button]
 
-            self.init_choice([selector], amount, kwargs, callback, selectables, card.data["description"], False)
+            self.init_choice([selector], amount, kwargs, callback, selectables, card.data["description"], source, False)
 
     def select_card(self, selectors, amount, options, source, select_text, insta_use):
         buttons = []
@@ -976,7 +978,7 @@ class GameState(State):
         kwargs = {"source": source, "amount": amount, "options": options, "insta_use": insta_use}
         callback = self._card_choice_callback
 
-        self.init_choice(selectors, amount, kwargs, callback, buttons, select_text)
+        self.init_choice(selectors, amount, kwargs, callback, buttons, select_text, source)
 
     def select_drop_cards(self, selectors, card_type, amount, source, callback=None):
         if callback is None:
@@ -1002,13 +1004,13 @@ class GameState(State):
                     if card.data["type"] == card_type:
                         selectables.append(card)
 
-            self.init_choice([selector], amount, selection_kwargs, callback, selectables, select_text)
+            self.init_choice([selector], amount, selection_kwargs, callback, selectables, select_text, source)
 
     def select_stun(self, selector, select_text):
         select_text = "Betäube einen Gegner!"
 
         selectables = self.board.open_enemies
-        self.init_choice([selector], 1, {}, self._stun_callback, selectables, select_text)
+        self.init_choice([selector], 1, {}, self._stun_callback, selectables, select_text, None)
 
     # CALLBACKS
 
@@ -1102,7 +1104,7 @@ class GameState(State):
                        "bolt": "Blitz",
                        "heart": "Herz",
                        "card": "Karte"}
-        self.init_choice([selection.selector], 1, {}, self._dummy_callback, selectables, f"Resultat: {translation[outcome]}")
+        self.init_choice([selection.selector], 1, {}, self._dummy_callback, selectables, f"Resultat: {translation[outcome]}", None)
 
     def _dummy_callback(self):
         self.resolve_choice()

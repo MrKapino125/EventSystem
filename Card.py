@@ -16,9 +16,15 @@ class Card:
         self.small_font_size = 14
         self.small_font = pygame.font.SysFont('Arial', self.small_font_size)
 
+        self.back_color = (255, 255, 255)
+        self.color = (0, 0, 0)
+
         self.lines = [self.data["name"]]
 
     def __repr__(self):
+        return self.data["name"]
+
+    def get_name(self):
         return self.data["name"]
 
     def play(self, source, game_state):
@@ -54,11 +60,11 @@ class Card:
             altered = False
 
         fill_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, width, height))
+        pygame.draw.rect(fill_surface, (*self.back_color, 128), (0, 0, width, height))
 
         screen.blit(fill_surface, (pos[0], pos[1]))
 
-        pygame.draw.rect(screen, (255, 0, 0), (pos[0], pos[1], width, height), 2)
+        pygame.draw.rect(screen, self.color, (pos[0], pos[1], width, height), 2)
 
         if altered:
             lines = self.generate_lines(pos, width, height)
@@ -68,7 +74,7 @@ class Card:
         y_offset = 0
         line_spacing = 5  # spacing between lines
         for line in lines:
-            text_surface = self.font.render(line, True, (255,0,0))
+            text_surface = self.font.render(line, True, self.color)
             text_rect = text_surface.get_rect(center=(pos[0] + width // 2, pos[1] + height // 2 + y_offset - (len(lines) - 1) * (self.font_size + line_spacing) // 2))  # vertical align
             screen.blit(text_surface, text_rect)
             y_offset += self.font_size + line_spacing
@@ -148,6 +154,12 @@ class Card:
 class HogwartsCard(Card):
     def __init__(self, data):
         super().__init__(data)
+        if self.data["type"] == "spell":
+            self.back_color = (255, 190, 190)
+        elif self.data["type"] == "object":
+            self.back_color = (242, 194, 70)
+        elif self.data["type"] == "ally":
+            self.back_color = (190, 190, 255)
 
     def play(self, source, game_state):
         game_state.apply_effect(Effect.CardPlayEffect(self), source, [game_state.current_player])
@@ -167,7 +179,7 @@ class HogwartsCard(Card):
 
         card_type = self.data["type"]
 
-        type_surface = self.small_font.render(type_dict[card_type], True, (255, 0, 0))
+        type_surface = self.small_font.render(type_dict[card_type], True, (0,0,0))
         type_width = type_surface.get_width()
         type_height = type_surface.get_height()
 
@@ -184,7 +196,7 @@ class HogwartsCard(Card):
         cost = self.data["cost"]
         if cost == 0:
             return
-        cost_surface = self.small_font.render(str(cost), True, (255, 0, 0))
+        cost_surface = self.small_font.render(str(cost), True, (0,0,0))
         cost_width = cost_surface.get_width()
         cost_height = cost_surface.get_height()
 
@@ -236,7 +248,7 @@ class PlaceCard(Card):
         if level == 7:
             max_place = 4
 
-        type_surface = self.small_font.render(f"{num_place}/{max_place}", True, (255, 0, 0))
+        type_surface = self.small_font.render(f"{num_place}/{max_place}", True, self.color)
         type_width = type_surface.get_width()
         type_height = type_surface.get_height()
 
@@ -250,7 +262,7 @@ class PlaceCard(Card):
 
         screen.blit(type_surface, (type_x, type_y))
 
-        skulls_surface = font.render(f"{self.skulls} / {self.max_skulls}", True, (255, 0, 0))
+        skulls_surface = font.render(f"{self.skulls} / {self.max_skulls}", True, self.color)
         skulls_width = skulls_surface.get_width()
         skulls_height = skulls_surface.get_height()
 
