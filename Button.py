@@ -151,36 +151,60 @@ class EffectButton(Button):
 
     def generate_effect_text(self):
         if self.effect["type"] == "damage":
+            if self.effect["amount"] == 1:
+                heart = "Herz"
+            else:
+                heart = "Herzen"
             if self.effect["target"] == "self":
-                return f"Du verlierst {self.effect['amount']} Herzen"
+                return f"Du verlierst {self.effect['amount']} {heart}"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl verliert {self.effect['amount']} Herzen"
+                return f"Ein Held deiner Wahl verliert {self.effect['amount']} {heart}"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden verlieren {self.effect['amount']} Herzen"
+                return f"ALLE Helden verlieren {self.effect['amount']} {heart}"
+
         elif self.effect["type"] == "heal":
+            if self.effect["amount"] == 1:
+                heart = "Herz"
+            else:
+                heart = "Herzen"
             if self.effect["target"] == "self":
-                return f"Du erhälst {self.effect['amount']} Herzen"
+                return f"Du erhälst {self.effect['amount']} {heart}"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl erhält {self.effect['amount']} Herzen"
+                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {heart}"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden erhalten {self.effect['amount']} Herzen"
+                return f"ALLE Helden erhalten {self.effect['amount']} {heart}"
+
         elif self.effect["type"] == "give_coins":
+            if self.effect["amount"] == 1:
+                coin = "Münze"
+            else:
+                coin = "Münzen"
             if self.effect["target"] == "self":
-                return f"Du erhälst {self.effect['amount']} Münzen"
+                return f"Du erhälst {self.effect['amount']} {coin}"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl erhält {self.effect['amount']} Münzen"
+                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {coin}"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden erhalten {self.effect['amount']} Münzen"
+                return f"ALLE Helden erhalten {self.effect['amount']} {coin}"
+
         elif self.effect["type"] == "give_bolts":
+            if self.effect["amount"] == 1:
+                bolt = "Blitz"
+            else:
+                bolt = "Blitze"
             if self.effect["target"] == "self":
-                return f"Du erhälst {self.effect['amount']} Blitze"
+                return f"Du erhälst {self.effect['amount']} {bolt}"
             elif self.effect["target"] == "choice":
-                return f"Ein Held deiner Wahl erhält {self.effect['amount']} Blitze"
+                return f"Ein Held deiner Wahl erhält {self.effect['amount']} {bolt}"
             elif self.effect["target"] == "all":
-                return f"ALLE Helden erhalten {self.effect['amount']} Blitze"
+                return f"ALLE Helden erhalten {self.effect['amount']} {bolt}"
+
         elif self.effect["type"] == "drop_card":
+            if self.effect["amount"] == 1:
+                card = "Karte"
+            else:
+                card = "Karten"
             if self.effect["target"] == "self":
-                return f"Wirf {self.effect['amount']} Karten ab"
+                return f"Wirf {self.effect['amount']} {card} ab"
 
 
     def parse_effect_type(self, effect_type):
