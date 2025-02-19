@@ -934,7 +934,7 @@ class GameState(State):
 
         select_text = ""
         if card is not None:
-            select_text = card.data["description"]
+            select_text = f"Wähle {amount} Helden für die Karte {card.data['name']}"
         selection_kwargs = {"amount": amount, "valid_targets": valid_targets, "source": source, "card": card, "effect": effect}
 
         #print(selectors, amount, selection_kwargs, callback, selectables, select_text)
@@ -944,9 +944,10 @@ class GameState(State):
         buttons = []
         for option in options:
             button = Button.EffectButton(option)
-            button.set_text()
             buttons.append(button)
         self.card_position_manager.align_buttons(buttons)
+        for button in buttons:
+            button.set_text()
 
         kwargs = {"source": source, "amount": amount, "options": options, "card": card}
         if callback is None:
@@ -960,7 +961,7 @@ class GameState(State):
                         if not [card for card in selector.hand if card.data["type"] == button.effect["card_type"]]:
                             selectables = [s for s in selectables if s != button]
 
-            self.init_choice([selector], amount, kwargs, callback, selectables, card.data["description"], source, False)
+            self.init_choice([selector], amount, kwargs, callback, selectables, "Wähle einen Effekt!", source, False)
 
     def select_card(self, selectors, amount, options, source, select_text, insta_use):
         buttons = []
