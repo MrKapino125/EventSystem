@@ -167,7 +167,6 @@ class Player:
         if self.is_dead:
             death_event = Event.PlayerDeadEvent(source, self)
             if game_state.card_playing:
-                print("hi")
                 game_state.death_events.append(death_event)
             else:
                 game_state.event_handler.dispatch_event(death_event)

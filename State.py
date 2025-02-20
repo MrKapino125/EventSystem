@@ -220,6 +220,12 @@ class GameState(State):
 
         self.init_round()
 
+    def __repr__(self):
+        s = ""
+        for player in self.players:
+            s += f"{player.name} {player.health}/10, Coins/Bolts: {player.coins}/{player.bolts}"
+        return s
+
     def tick(self):
         if self.event_handler.is_clicked["middle"]:
             player1 = Player.Neville()
@@ -238,7 +244,7 @@ class GameState(State):
         if self.selection_pipeline:
             self.select = True
             self.current_selection = self.selection_pipeline.pop(0)
-            if not (self.current_selection.callback is self._drop_cards_callback):
+            if not (self.current_selection.callback == self._drop_cards_callback):
                 self.handle_death()
             return
 
