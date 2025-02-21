@@ -11,11 +11,13 @@ import math
 
 
 class Player:
-    def __init__(self, name):
+    def __init__(self, name, description1, description2):
         self.name = name
         self.names = self.name.split(" ")
-        self.health = 10
+        self.description1 = description1
+        self.description2 = description2
 
+        self.health = 10
         self.coins = 0
         self.bolts = 0
         self.deck = Deck.Deck()
@@ -240,7 +242,7 @@ class Player:
 
 class Harry(Player):
     def __init__(self):
-        super().__init__("Harry Potter")
+        super().__init__("Harry Potter", "Wenn zum ersten Mal in einem Zug Totenköpfe vom aktuellen Ort entfernt werden, erhält ein Held deiner Wahl 1 Blitz.", "Wenn zum ersten Mal in einem Zug Totenköpfe vom aktuellen Ort entfernt werden, bekommen bis zu zwei Helden deiner Wahl 1 Blitz.")
         self.effect_played = False
         self.tarnumhang = []
 
@@ -287,7 +289,7 @@ class Harry(Player):
 
 class Neville(Player):
     def __init__(self):
-        super().__init__("Neville Longbottom")
+        super().__init__("Neville Longbottom", "Wenn ein Held zum ersten Mal in deinem Zug Herzen erhält, bekommt dieser Held ein weiteres Herz.", "Jedes Mal, wenn ein Held in deinem Zug 1 Herz bekommt, bekommt dieser Held ein weiteres Herz.")
         self.first_heal_given_this_turn = {}
         self.effect_played = False
 
@@ -315,7 +317,7 @@ class Neville(Player):
 
 class Ron(Player):
     def __init__(self):
-        super().__init__("Ron Weasley")
+        super().__init__("Ron Weasley", "Wenn du in deinem Zug 3 oder mehr Blitze bei einem Bösewicht ablegst, erhält ein Held deiner Wahl 2 Herzen.", "Wenn du in deinem Zug 3 oder mehr Blitze bei einem Bösewicht ablegst, bekommen ALLE Helden 2 Herzen.")
         self.enemies_attacked = {}
         self.effect_played = False
 
@@ -362,7 +364,7 @@ class Ron(Player):
 
 class Hermione(Player):
     def __init__(self):
-        super().__init__("Hermine Granger")
+        super().__init__("Hermine Granger", "Wenn du in deinem Zug 4 oder mehr Sprüche ausspielst, erhält ein Held deiner Wahl 1 Münze.", "Wenn du in deinem Zug 4 oder mehr Sprüche ausspielst, bekommen ALLE Helden 1 Münze.")
         self.spell_played = 0
         self.effect_played = False
 

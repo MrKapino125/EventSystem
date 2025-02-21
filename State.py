@@ -741,16 +741,21 @@ class GameState(State):
         dice_type = event.data['dice_type']
         is_evil = event.data['is_evil']
 
+        colors = {"gryffindor": (116, 0, 1),
+                  "hufflepuff": (236, 185, 57),
+                  "ravenclaw": (14,26,64),
+                  "slytherin": (26,71,42)}
+
         if dice_type == "choice":
             select_text = "Wähle einen Würfel"
-            selectables = [Button.Button(dice) for dice in self.valid_dice]
+            selectables = [Button.Button(dice.capitalize(),color=(0, 0, 0), back_color=colors[dice]) for dice in self.valid_dice]
             self.card_position_manager.align_buttons(selectables)
             for button in selectables:
                 button.lines = button.generate_lines()
 
         else:
             select_text = f"Würfel den {dice_type.capitalize()} Würfel"
-            button = Button.Button("Würfeln")
+            button = Button.Button("Würfeln", color=(0,0,0), back_color=colors[dice_type])
             selectables = [button]
             self.card_position_manager.align_buttons(selectables)
             button.lines = button.generate_lines()
@@ -1110,7 +1115,7 @@ class GameState(State):
                     self.apply_effect(Effect.HealEffect(1), source, self.players)
             case "card":
                 if is_evil:
-                    players = self.players
+                    players = self.players[:]
                     players.reverse()
                     self.select_drop_cards(players, None, 1, source)
                 else:

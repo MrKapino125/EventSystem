@@ -5,7 +5,7 @@ from Effect import Effect
 
 
 class Button:
-    def __init__(self, text=""):
+    def __init__(self, text="", color=(255, 0, 0), back_color=(255, 255, 255)):
         self.pos = (0, 0)
         self.width = 0
         self.height = 0
@@ -13,6 +13,8 @@ class Button:
         self.font = pygame.font.SysFont("Arial", self.font_size)
         self.text = text
         self.selected = False
+        self.color = color
+        self.back_color = back_color
 
         self.lines = []
 
@@ -30,11 +32,11 @@ class Button:
 
 
         fill_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-        pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, width, height))
+        pygame.draw.rect(fill_surface, (*self.back_color, 128), (0, 0, width, height))
 
         screen.blit(fill_surface, (pos[0], pos[1]))
 
-        pygame.draw.rect(screen, (255, 0, 0), (pos[0], pos[1], width, height), 2)
+        pygame.draw.rect(screen, self.color, (pos[0], pos[1], width, height), 2)
 
         if altered:
             lines = self.generate_lines(pos, width, height)
@@ -44,7 +46,7 @@ class Button:
         y_offset = 0
         line_spacing = 5  # spacing between lines
         for line in lines:
-            text_surface = self.font.render(line, True, (255, 0, 0))
+            text_surface = self.font.render(line, True, self.color)
             text_rect = text_surface.get_rect(center=(pos[0] + width // 2,
                                                       pos[1] + height // 2 + y_offset - (len(lines) - 1) * (
                                                                   self.font_size + line_spacing) // 2))  # vertical align

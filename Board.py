@@ -4,6 +4,7 @@ import Enemy
 import Card
 import Deck
 import Event
+import Player
 
 
 class Board:
@@ -109,7 +110,7 @@ class Board:
         game_state = self.game_state
         event_handler = game_state.event_handler
 
-        for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump]:
+        for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump] + self.game_state.players:
             is_hovering = card.is_hovering(event_handler.mouse_pos)
 
             if is_hovering:
@@ -198,6 +199,12 @@ class Board:
                 elif isinstance(card, Enemy.Enemy):
                     card_name = card.name
                     card_description = card.description
+            elif isinstance(self.current_card, Player.Player):
+                card_name = self.current_card.name
+                if 3 <= self.game_state.level <= 6:
+                    card_description = self.current_card.description1
+                elif self.game_state.level == 7:
+                    card_description = self.current_card.description2
 
             name_text = self.font.render(card_name, True, (0, 0, 0))
             name_rect = name_text.get_rect(center=(self.overlay_rect.centerx, self.overlay_rect.centery - 40))  # moved name up
