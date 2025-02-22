@@ -1173,7 +1173,6 @@
     "cost": 4,
     "level": 5,
     "description": "Du bekommst 1 Blitz. Hat ein anderer Held ein Mitglied der Weasley-Familie auf der Hand, bekommen ALLE Helden 1 Münze. Würfle mit dem Gryffindor-Würfel.",
-    "modifier": "weasley_coin",
     "effects": [
       {
         "type": "give_bolts",
@@ -1194,9 +1193,6 @@
     "cost": 4,
     "level": 5,
     "description": "Du bekommst 1 Blitz. Hat ein anderer Held ein Mitglied der Weasley-Familie auf der Hand, bekommen ALLE Helden 1 Herz. Würfle mit dem Gryffindor-Würfel.",
-    "modifier": [
-      "weasley_heal"
-    ],
     "effects": [
       {
         "type": "give_bolts",

@@ -748,7 +748,7 @@ class GameState(State):
 
         if dice_type == "choice":
             select_text = "Wähle einen Würfel"
-            selectables = [Button.Button(dice.capitalize(),color=(0, 0, 0), back_color=colors[dice]) for dice in self.valid_dice]
+            selectables = [Button.Button(dice.capitalize(), color=(0, 0, 0), back_color=colors[dice]) for dice in self.valid_dice]
             self.card_position_manager.align_buttons(selectables)
             for button in selectables:
                 button.lines = button.generate_lines()
@@ -1093,7 +1093,7 @@ class GameState(State):
         is_evil = event.data['is_evil']
 
         if dice_type == "choice":
-            dice_type = selections[0].text
+            dice_type = selections[0].text.lower()
 
         outcome = self._throw_dice(dice_type)
 
