@@ -136,15 +136,15 @@ class Card:
                         current_line = word + " "
                         i += 1
 
-            lines.append(current_line)
+            lines.append(current_line[:-1])
             return lines
 
         _words = get_lines(words)
 
         if _words[0] == "" or words[0] == " ":
-            _words.remove(_words[0])
+            _words.pop(0)
 
-        return get_lines(words)
+        return _words
 
     def render_select_overlay(self, screen):
         green = (0, 255, 0)  # Green color
