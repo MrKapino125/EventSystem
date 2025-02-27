@@ -832,7 +832,7 @@ class GameState(State):
             targets = self._resolve_targets(active_player, target_type, effect_data)
 
         if effect == "drop_cards":
-            self.select_drop_cards(targets, effect_data.get("card_type"), effect_data.get("amount", 1), source)
+            self.select_drop_cards(targets, effect_data.get("card_type"), effect_data.get("amount", 1), source, prio=False)
             return
 
         if effect == "stun":
