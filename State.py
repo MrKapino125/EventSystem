@@ -504,11 +504,6 @@ class GameState(State):
         if card.data.get("is_unforgivable", False):
             self.dark_arts_cards_left += 1
 
-        if card.data["name"] == "MORSMORDRE!":
-            for enemy in self.board.open_enemies:
-                if isinstance(enemy, Enemy.Todesser):
-                    enemy.apply_effect(event, self)
-
         modifier_type_list = card_data.get("modifier")
         if modifier_type_list is not None:
             for modifier_type in modifier_type_list:
@@ -518,6 +513,11 @@ class GameState(State):
 
         for effect_data in card_data["effects"]:
             self._apply_card_effects(source, effect_data, card)
+
+        if card.data["name"] == "MORSMORDRE!":
+            for enemy in self.board.open_enemies:
+                if isinstance(enemy, Enemy.Todesser):
+                    enemy.apply_effect(event, self)
 
     def handle_card_drawn_event(self, event):
         source = event.data["source"]

@@ -154,3 +154,5 @@ class TwoSpellsBoltHealModifier(EffectModifier):
             self.deactivate = True
             game_state.apply_effect(Effect.HealEffect(1), source, [source])
             game_state.apply_effect(Effect.GiveBoltEffect(1), source, [source])
+
+        return effect
