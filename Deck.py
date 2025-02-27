@@ -1,5 +1,7 @@
 import pygame
 
+import Enemy
+
 
 class Deck(list):
     def __init__(self):
@@ -9,6 +11,11 @@ class Deck(list):
         self.height = 0
 
     def render(self, screen):
+        if len(self) == 1:
+            if isinstance(self[0], Enemy.Voldemort):
+                self[0].render(screen, self.pos, self.width, self.height)
+                return
+
         fill_surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         pygame.draw.rect(fill_surface, (255, 255, 255, 128), (0, 0, self.width, self.height))
 

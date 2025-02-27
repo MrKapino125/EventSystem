@@ -1180,6 +1180,13 @@
         "target": "self"
       },
       {
+        "type": "weasley",
+        "target": "self",
+        "effect_type": "give_coins",
+        "effect_amount": 1,
+        "effect_target": "all"
+      },
+      {
         "type": "throw_dice",
         "dice_type": "gryffindor",
         "amount": 1,
@@ -1198,6 +1205,13 @@
         "type": "give_bolts",
         "amount": 1,
         "target": "self"
+      },
+      {
+        "type": "weasley",
+        "target": "self",
+        "effect_type": "heal",
+        "effect_amount": 1,
+        "effect_target": "all"
       },
       {
         "type": "throw_dice",
@@ -1272,7 +1286,7 @@
             "target": "self"
           },
           {
-            "type": "remove_skull",
+            "type": "remove_skulls",
             "amount": 1
           }
         ]

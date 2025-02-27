@@ -331,6 +331,6 @@ def load_dark_arts_cards(level):
                 for _ in range(card.get("amount", 1)):
                     cards.append(DarkArtsCard(card))
 
-        #return [card for card in cards if card.data["name"] == "FLIPENDO!"]
+        #return [card for card in cards if card.data["name"] == "LEGILIMENTIK"]
         return cards
 

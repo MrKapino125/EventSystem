@@ -337,7 +337,7 @@ class Riddle(Enemy):
             game_state.apply_effect(Effect.DamageEffect(2), self, [game_state.current_player])
             self._execute_active(game_state)
         else:
-            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!", self)
+            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!", self, is_drop=True)
 
     def drop_callback(self, game_state):
         selection = game_state.current_selection
@@ -460,6 +460,13 @@ class Umbridge(Enemy):
                          "Jedes Mal, wenn ein Held eine Karte mit einem Wert von 4 oder mehr Münzen erwirbt, verliert dieser Held 1 Herz.",
                          "ALLE Helden bekommen 1 Münze und 2 Herzen.")
 
+    def _execute_passive(self, event, game_state):
+        game_state.apply_effect(Effect.DamageEffect(1), self, [game_state.current_player])
+
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.HealEffect(1), self, game_state.players)
+        game_state.apply_effect(Effect.GiveCoinsEffect(2), self, game_state.players)
+
 
 class Greyback(Enemy):
     def __init__(self):
@@ -476,25 +483,31 @@ class Bellatrix(Enemy):
                          "ALLE Helden dürfen ihren Ablagestapel nach einem Gegenstand durchsuchen und diesen auf die Hand nehmen. Entfernt 2 Totenköpfe vom aktuellen Ort.")
 
 
-class Voldemort1(Enemy):
+class Voldemort(Enemy):
+    def __init__(self, name, health, level, description):
+        super().__init__(name, health, level, description, "Die Helden gewinnen")
+
+
+class Voldemort1(Voldemort):
     def __init__(self):
         super().__init__('Lord Voldemort', 10, 5,
-                         "Der aktive Held verliert 1 Herz und muss eine Karte abwerfen.",
-                         "Die Helden gewinnen!")
+                         "Der aktive Held verliert 1 Herz und muss eine Karte abwerfen.")
+
+    def _execute_active(self, game_state):
+        game_state.apply_effect(Effect.DamageEffect(1), self, [game_state.current_player])
+        game_state.select_drop_cards([game_state.current_player], None, 1, self, prio=False)
 
 
-class Voldemort2(Enemy):
+class Voldemort2(Voldemort):
     def __init__(self):
         super().__init__('Lord Voldemort', 15, 6,
-                         "Würfelt mit dem Slytherin-Würfel. Blitz = ALLE Helden verlieren 1 Herz. Münze = Legt 1 Totenkopf auf den aktuellen Ort. Herz = Entfernt 1 Blitz von allen Bösewichten. Karte = ALLE Helden müssen eine Karte abwerfen.",
-                         "Die Helden gewinnen!")
+                         "Würfelt mit dem Slytherin-Würfel. Blitz = ALLE Helden verlieren 1 Herz. Münze = Legt 1 Totenkopf auf den aktuellen Ort. Herz = Entfernt 1 Blitz von allen Bösewichten. Karte = ALLE Helden müssen eine Karte abwerfen.")
 
 
-class Voldemort3(Enemy):
+class Voldemort3(Voldemort):
     def __init__(self):
         super().__init__('Lord Voldemort', 20, 7,
-                         "Legt 1 Totenkopf auf den aktuellen Ort. Jedes Mal, wenn Totenköpfe vom Ort entfernt werden, verlieren ALLE Helden 1 Herz.",
-                         "Die Helden gewinnen!")
+                         "Legt 1 Totenkopf auf den aktuellen Ort. Jedes Mal, wenn Totenköpfe vom Ort entfernt werden, verlieren ALLE Helden 1 Herz.")
 
 
 def load_enemies(level):

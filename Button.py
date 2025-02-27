@@ -250,6 +250,13 @@ class EffectButton(Button):
                            "object": "Gegenstand"}
             return f"Nimm einen {translation[card_type]} von deinem Ablagestapel!"
 
+        elif self.effect["type"] == "remove_skulls":
+            if self.effect["amount"] == 1:
+                card = "Totenkopf"
+            else:
+                card = "Totenköpfe"
+            return f"Entferne {self.effect['amount']} {card}"
+
     def parse_effect_type(self, effect_type):
         pass
 

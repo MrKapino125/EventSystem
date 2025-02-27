@@ -123,3 +123,34 @@ class EffectPerFirstTypeModifier(EffectModifier):
             game_state.apply_effect(self.effect, source, [source])
             self.deactivate = True
         return effect
+
+
+class TwoSpellsBoltHealModifier(EffectModifier):
+    def __init__(self, source, game_state):
+        self.deactivate = False
+        self.count = 0
+        for card in source.cards_played:
+            if card.data["type"] == "Spell":
+                self.count += 1
+            if self.count == 2:
+                self.deactivate = True
+                game_state.apply_effect(Effect.HealEffect(1), source, [source])
+                game_state.apply_effect(Effect.GiveBoltEffect(1), source, [source])
+
+    def modify(self, effect, game_state, source, targets):
+        if self.deactivate:
+            return effect
+
+        if not isinstance(effect, Effect.CardPlayEffect):
+            return effect
+
+        if not isinstance(source, Player.Player):
+            return effect
+
+        card = effect.card
+        if card.data["type"] == "Spell":
+            self.count += 1
+        if self.count == 2:
+            self.deactivate = True
+            game_state.apply_effect(Effect.HealEffect(1), source, [source])
+            game_state.apply_effect(Effect.GiveBoltEffect(1), source, [source])

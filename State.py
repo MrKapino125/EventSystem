@@ -1,5 +1,6 @@
 import random
 import sys
+import re
 
 import Card
 import Deck
@@ -174,6 +175,8 @@ class GameState(State):
         event_handler.register_listener("coins_health", self.handle_coins_health_event)
         event_handler.register_listener("coins_draw", self.handle_coins_draw_event)
         event_handler.register_listener("throw_dice", self.handle_throw_dice_event)
+        event_handler.register_listener("check_hand", self.handle_check_hand_event)
+        event_handler.register_listener("weasley", self.handle_weasley_event)
 
         self.players_dict = players_dict
         self.players = list(players_dict.values())
@@ -214,6 +217,7 @@ class GameState(State):
             self.valid_dice = ["gryffindor", "hufflepuff", "ravenclaw", "slytherin"]
 
         self.enemies_done = dict(zip(self.board.open_enemies, [False for _ in range(len(self.board.open_enemies))]))
+        self.voldemort_done = False
 
         self.card_playing = False
         self.death_events = []
@@ -244,23 +248,29 @@ class GameState(State):
         if self.selection_pipeline:
             self.select = True
             self.current_selection = self.selection_pipeline.pop(0)
-            if not (self.current_selection.callback == self._drop_cards_callback):
-                self.handle_death()
+            if isinstance(self.current_selection, DropSelection):
+                if self.current_selection.is_death:
+                    self.current_selection.amount = len(self.current_selection.selector.hand) // 2
+                    self.current_selection.select_text = re.sub(r'Wirf (\d+) Karten ab!', f'Wirf {self.current_selection.amount} Karten ab!', self.current_selection.select_text)
+                    self.current_selection.select_text = re.sub(r'^.*?:', f'{self.current_selection.selector.name} ist Tod:', self.current_selection.select_text)
+                self.current_selection.selectables = [card for card in self.current_selection.selectables if card in self.current_selection.selector.hand]
             return
-
-        self.handle_death()
 
         if self.dark_arts_cards_left > 0:
-            self.init_choice([self.current_player], 1, {}, self._select_dark_arts_callback, [self.board.dark_arts_stack], "Decke eine Dunkle Künste Karte auf!", None)
+            self.init_choice([self.current_player], 1, {}, self._select_dark_arts_callback, [self.board.dark_arts_stack], "Decke eine Dunkle Künste Karte auf!", None, False)
             return
 
+        if len(self.board.enemy_stack) == 1 and isinstance(self.board.enemy_stack[0], Enemy.Voldemort):
+            if not self.voldemort_done:
+                self.init_choice([self.current_player], 1, {}, self._select_voldemort_callback, [self.board.enemy_stack], "Aktiviere den Effekt von Lord Voldemort!", None, False)
+                return
         for enemy, is_done in self.enemies_done.items():
             if not is_done:
                 if enemy.__class__._execute_active is Enemy.Enemy._execute_active or enemy.stunned:
                     self.enemies_done[enemy] = True
                 else:
                     self.init_choice([self.current_player], 1, {"enemy": enemy}, self._select_enemy_callback,
-                                 [enemy], "Aktiviere den Effekt des Bösewichts", None)
+                                 [enemy], "Aktiviere den Effekt von " + enemy.name, None, False)
                 return
 
         if self.event_handler.is_clicked["left"] and not self.event_handler.is_clicked_lock["left"]:
@@ -328,8 +338,10 @@ class GameState(State):
             self.enemies += [Enemy.Dementor(), Enemy.Pettigrew()]
         if self.level >= 4:
             self.enemies += [Enemy.Barty(), Enemy.Todesser()]
+        if self.level >= 5:
+            self.enemies += [Enemy.Umbridge(), Enemy.Todesser()]
 
-        #self.enemies = [Enemy.Basilisk(), Enemy.CrabbeGoyle()]
+        self.enemies = [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Quirrell(), Enemy.Riddle()]
 
     def end_turn(self):
         self.current_player.apply_end_turn_effect(self)
@@ -352,6 +364,7 @@ class GameState(State):
         self.current_player = self.players[self.current_player_idx]
 
         self.enemies_done = dict(zip(self.board.open_enemies, [False for _ in range(len(self.board.open_enemies))]))
+        self.voldemort_done = False
 
         for player in self.players:
             if player.is_dead:
@@ -397,6 +410,8 @@ class GameState(State):
             effect_type = modifer_list[3]
             effect = self.parse_modifier_effect_type(effect_type, amount)
             modifier = EffectModifiers.EffectPerFirstTypeModifier(effect, card_type, source, self)
+        elif modifier_type == "two_spells_bolt_heal":
+            modifier = EffectModifiers.TwoSpellsBoltHealModifier(source, self)
         else:
             print("Unknown modifier type " + modifier_type)
             return None
@@ -446,11 +461,6 @@ class GameState(State):
         for target in targets:
             effect.apply(source, target, self)
 
-    def handle_death(self):
-        for event in self.death_events:
-            self.event_handler.dispatch_event(event)
-        self.death_events = []
-
     # EVENTHANDLER #
 
     def handle_card_played_event(self, event):
@@ -466,6 +476,7 @@ class GameState(State):
             self.handle_dark_arts_card_played_event(event)
 
         self.card_playing = False
+        self.card_position_manager.realign_board()
 
     def handle_hogwarts_card_played_event(self, event):
         source = event.data["source"]
@@ -667,7 +678,12 @@ class GameState(State):
 
         cost = card.data["cost"]
         source.coins -= cost
+
         self.board.shop_cards.remove(card)
+
+        for enemy in self.board.open_enemies:
+            if isinstance(enemy, Enemy.Umbridge):
+                enemy.apply_effect(event, self)
 
     def handle_reuse_event(self, event):
         source = event.data['source']
@@ -761,7 +777,32 @@ class GameState(State):
             button.lines = button.generate_lines()
 
         for _ in range(amount):
-            self.init_choice([target], 1, {"event": event}, self._select_dice_callback, selectables, select_text, source)
+            self.init_choice([target], 1, {"event": event}, self._select_dice_callback, selectables, select_text, source, False)
+
+    def handle_check_hand_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+
+        for card in target.hand:
+            if card.data.get("cost", 0) >= 4:
+                self.apply_effect(Effect.DamageEffect(1), source, [target])
+
+    def handle_weasley_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+        effect_type = event.data["effect_type"]
+        effect_amount = event.data["effect_amount"]
+        effect_target = event.data["effect_target"]
+
+        effect = self.get_effect_from_type(effect_type, {"amount": effect_amount})
+        targets = self._resolve_targets(target, effect_target, None)
+        for player in self.players:
+            if player == target:
+                continue
+            for card in player.hand:
+                if "Weasley" in card.date["name"]:
+                    self.apply_effect(effect, source, targets)
+                    break
 
     # PRIVATE #
 
@@ -836,6 +877,10 @@ class GameState(State):
             effect = "stun"
         elif effect_type == "throw_dice":
             effect = Effect.ThrowDiceEffect(effect_data["dice_type"], effect_data["amount"], isinstance(card, Card.DarkArtsCard))
+        elif effect_type == "check_hand":
+            effect = Effect.CheckHandEffect()
+        elif effect_type == "weasley":
+            effect = Effect.WeasleyEffect(effect_data["effect_type"], effect_data["effect_amount"], effect_data["effect_target"])
         elif effect_type[:5] == "reuse":
             select_text = ""
             if card is not None:
@@ -931,7 +976,7 @@ class GameState(State):
         for enemy in self.board.enemy_dump + self.board.open_enemies + self.board.enemy_stack:
             print(enemy)
 
-    def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, source, prio=True):
+    def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, source, prio=True, is_drop=False, is_death=False):
         if source is not None:
             select_text = source.get_name() + ": " + select_text
         _selectors = selectors[:]
@@ -940,7 +985,10 @@ class GameState(State):
             _selectors.reverse()
 
         for selector in _selectors:
-            select_object = SelectionObject(selector, amount, kwargs, callback, selectables[:], select_text)
+            if is_drop:
+                select_object = DropSelection(selector, amount, kwargs, callback, selectables[:], select_text, is_death)
+            else:
+                select_object = SelectionObject(selector, amount, kwargs, callback, selectables[:], select_text)
             if prio:
                 self.selection_pipeline.insert(0, select_object)
             else:
@@ -1003,7 +1051,7 @@ class GameState(State):
 
         self.init_choice(selectors, amount, kwargs, callback, buttons, select_text, source)
 
-    def select_drop_cards(self, selectors, card_type, amount, source, callback=None):
+    def select_drop_cards(self, selectors, card_type, amount, source, callback=None, prio=True, is_death=False):
         if callback is None:
             callback = self._drop_cards_callback
         selection_kwargs = {"source": source, "amount": amount, "card_type": card_type}
@@ -1027,7 +1075,7 @@ class GameState(State):
                     if card.data["type"] == card_type:
                         selectables.append(card)
 
-            self.init_choice([selector], amount, selection_kwargs, callback, selectables, select_text, source)
+            self.init_choice([selector], amount, selection_kwargs, callback, selectables, select_text, source, prio, is_drop=True, is_death=is_death)
 
     def select_stun(self, selector, select_text):
         select_text = "Betäube einen Gegner!"
@@ -1050,7 +1098,6 @@ class GameState(State):
         for card in selections:
             self.apply_effect(Effect.DropCardEffect(card), source, [player])
 
-        self.handle_death()
         self.resolve_choice()
 
     def _effect_choice_callback(self, source, amount, options, card):
@@ -1135,6 +1182,12 @@ class GameState(State):
     def _dummy_callback(self):
         self.resolve_choice()
 
+    def _select_voldemort_callback(self):
+        self.board.enemy_stack[0].apply_effect(None, self)
+        self.voldemort_done = True
+
+        self.resolve_choice()
+
     def _select_dark_arts_callback(self):
         self.board.play_dark_arts(self)
         self.dark_arts_cards_left -= 1
@@ -1170,5 +1223,10 @@ class SelectionObject:
         self.selections = []
 
     def __repr__(self):
-        return self.selector.name
+        return self.select_text
 
+
+class DropSelection(SelectionObject):
+    def __init__(self, selector, amount, kwargs, callback, selectables, select_text, is_death):
+        super().__init__(selector, amount, kwargs, callback, selectables, select_text)
+        self.is_death = is_death

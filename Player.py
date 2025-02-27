@@ -168,10 +168,7 @@ class Player:
         self.take_damage(amount)
         if self.is_dead:
             death_event = Event.PlayerDeadEvent(source, self)
-            if game_state.card_playing:
-                game_state.death_events.append(death_event)
-            else:
-                game_state.event_handler.dispatch_event(death_event)
+            game_state.event_handler.dispatch_event(death_event)
 
     def apply_give_bolts_effect(self, amount, game_state):
         self.give_bolts(amount)
@@ -226,7 +223,7 @@ class Player:
         self.coins = 0
         self.bolts = 0
 
-        game_state.select_drop_cards([self], None, len(self.hand) // 2, source)
+        game_state.select_drop_cards([self], None, len(self.hand) // 2, source, is_death=True)
 
     def shuffle_deck(self):
         random.shuffle(self.deck)

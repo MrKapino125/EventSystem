@@ -145,3 +145,21 @@ class ThrowDiceEffect(Effect):
 
     def apply(self, source, target, game_state):
         game_state.event_handler.dispatch_event(Event.ThrowDiceEvent(source, target, self.dice_type, self.amount, self.is_evil))
+
+
+class CheckHandEffect(Effect):
+    def __init__(self):
+        pass
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.CheckHandEvent(source, target))
+
+
+class WeasleyEffect(Effect):
+    def __init__(self, effect_type, amount, target_type):
+        self.effect_type = effect_type
+        self.effect_amount = amount
+        self.effect_target_type = target_type
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.WeasleyEvent(source, target, self.effect_type, self.effect_amount, self.effect_target_type))

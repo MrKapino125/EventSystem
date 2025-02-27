@@ -60,6 +60,14 @@ class Board:
             self.open_enemies.append(self.enemy_stack.pop())
             self.open_enemies.append(self.enemy_stack.pop())
 
+        match level:
+            case 5:
+                self.enemy_stack.insert(0, Enemy.Voldemort1())
+            case 6:
+                self.enemy_stack.insert(0, Enemy.Voldemort2())
+            case 7:
+                self.enemy_stack.insert(0, Enemy.Voldemort3())
+
         for enemy in self.open_enemies:
             if isinstance(enemy, Enemy.Basilisk) or isinstance(enemy, Enemy.Barty) or isinstance(enemy, Enemy.Greyback):
                 self.game_state.permanent_modifiers.append(enemy.modifier)
@@ -110,7 +118,7 @@ class Board:
         game_state = self.game_state
         event_handler = game_state.event_handler
 
-        for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump] + self.game_state.players:
+        for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump] + self.game_state.players + [self.enemy_stack]:
             is_hovering = card.is_hovering(event_handler.mouse_pos)
 
             if is_hovering:
@@ -119,6 +127,11 @@ class Board:
                     if len(card) == 0:
                         self.is_hovering = False
                         break
+                if isinstance(card, Deck.Deck):
+                    if not (len(card) == 1 and isinstance(card[0], Enemy.Voldemort)):
+                        self.is_hovering = False
+                        break
+
                 self.is_hovering = True
                 break
         else:
@@ -205,6 +218,10 @@ class Board:
                     card_description = self.current_card.description1
                 elif self.game_state.level == 7:
                     card_description = self.current_card.description2
+            elif isinstance(self.current_card, Deck.Deck) and len(self.current_card) == 1 and isinstance(self.current_card[0], Enemy.Voldemort):
+                card_name = self.current_card[0].name
+                card_description = self.current_card[0].description
+                reward_text = self.current_card[0].reward_text
 
             name_text = self.font.render(card_name, True, (0, 0, 0))
             name_rect = name_text.get_rect(center=(self.overlay_rect.centerx, self.overlay_rect.centery - 40))  # moved name up
@@ -253,6 +270,8 @@ class Board:
 
     def draw_enemy(self):
         if not self.enemy_stack:
+            return
+        if len(self.enemy_stack) == 1 and isinstance(self.enemy_stack[0], Enemy.Voldemort) and self.open_enemies:
             return
 
         new_enemy = self.enemy_stack.pop()

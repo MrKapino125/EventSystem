@@ -112,3 +112,13 @@ class CoinsDrawGivenEvent(Event):
 class ThrowDiceEvent(Event):
     def __init__(self, source, target, dice_type, amount, is_evil):
         super().__init__("throw_dice", {"source": source, "target": target, "dice_type": dice_type, "amount": amount, "is_evil": is_evil})
+
+
+class CheckHandEvent(Event):
+    def __init__(self, source, target):
+        super().__init__("check_hand", {"source": source, "target": target})
+
+
+class WeasleyEvent(Event):
+    def __init__(self, source, target, effect_type, effect_amount, effect_target_type):
+        super().__init__("weasley", {"source": source, "target": target, "effect_type": effect_type, "effect_amount": effect_amount, "effect_target_type": effect_target_type})
