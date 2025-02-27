@@ -806,7 +806,7 @@ class GameState(State):
 
     # PRIVATE #
 
-    def _apply_card_effects(self, source, effect_data, card, active_player=None):
+    def _apply_card_effects(self, source, effect_data, card, active_player=None, drop_prio=False):
         if effect_data is None:
             return
 
@@ -832,7 +832,7 @@ class GameState(State):
             targets = self._resolve_targets(active_player, target_type, effect_data)
 
         if effect == "drop_cards":
-            self.select_drop_cards(targets, effect_data.get("card_type"), effect_data.get("amount", 1), source, prio=False)
+            self.select_drop_cards(targets, effect_data.get("card_type"), effect_data.get("amount", 1), source, prio=drop_prio)
             return
 
         if effect == "stun":
@@ -1104,7 +1104,7 @@ class GameState(State):
         selections = self.current_selection.selections
         for button in selections:
             effect = button.effect
-            self._apply_card_effects(source, effect, card, self.current_selection.selector)
+            self._apply_card_effects(source, effect, card, self.current_selection.selector, drop_prio=True)
 
         self.resolve_choice()
 
