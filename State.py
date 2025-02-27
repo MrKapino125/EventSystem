@@ -341,7 +341,7 @@ class GameState(State):
         if self.level >= 5:
             self.enemies += [Enemy.Umbridge(), Enemy.Todesser()]
 
-        self.enemies = [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Quirrell(), Enemy.Riddle()]
+        #self.enemies = [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Quirrell(), Enemy.Riddle()]
 
     def end_turn(self):
         self.current_player.apply_end_turn_effect(self)
