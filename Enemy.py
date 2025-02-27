@@ -6,6 +6,7 @@ import Event
 import Effect
 import Card
 import pygame
+from Globals import GLOBAL_ENEMY_FONT_SIZE
 
 
 class Enemy:
@@ -25,7 +26,7 @@ class Enemy:
         self.color = (0,0,0)
         self.back_color = (255, 255, 255)
 
-        self.font_size = 20
+        self.font_size = GLOBAL_ENEMY_FONT_SIZE
         self.font = pygame.font.SysFont('Arial', self.font_size)
         self.lines = [self.name]
 
@@ -89,7 +90,7 @@ class Enemy:
     def generate_lines(self):
         text = self.name
 
-        font_size = 20
+        font_size = self.font_size
         font = pygame.font.Font(None, font_size)
         words = text.split()
         lines = []

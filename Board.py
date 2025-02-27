@@ -5,6 +5,7 @@ import Card
 import Deck
 import Event
 import Player
+from Globals import GLOBAL_OVERLAY_FONT_SIZE
 
 
 class Board:
@@ -42,7 +43,7 @@ class Board:
         self.text_delay_counter = 0
         self.text_delay = 1  # frames
         self.current_card = None
-        self.font = pygame.font.Font(None, 36)
+        self.font = pygame.font.Font(None, GLOBAL_OVERLAY_FONT_SIZE)
         self.is_hovering = False
 
     def setup(self, level):

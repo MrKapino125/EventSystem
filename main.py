@@ -22,7 +22,11 @@ SCREEN_HEIGHT = info.current_h
 SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Harry Potter: Kampf um Hogwarts!")
 
-
+if SCREEN_WIDTH <= 1920 or SCREEN_HEIGHT <= 1080:
+    Globals.set_global_font_size(16)
+    Globals.set_global_small_font_size(13)
+    Globals.set_global_enemy_font_size(18)
+    Globals.set_global_overlay_font_size(30)
 
 state_manager = State.StateManager()
 
