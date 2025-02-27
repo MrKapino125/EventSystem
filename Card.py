@@ -226,6 +226,8 @@ class PlaceCard(Card):
         super().__init__(data)
         self.skulls = 0
         self.max_skulls = self.data["max_skulls"]
+        self.font_size = Globals.get_global_enemy_font_size()
+        self.font = pygame.font.SysFont('Arial', self.font_size)
 
     def __repr__(self):
         return super().__repr__() + f" {self.skulls}/{self.max_skulls}"
@@ -239,7 +241,7 @@ class PlaceCard(Card):
         if height is None:
             height = self.height
 
-        font = pygame.font.Font(None, Globals.get_global_enemy_font_size())
+        font = pygame.font.SysFont("Arial", Globals.get_global_small_font_size())
 
         num_place = self.data["pos"]
         max_place = 3

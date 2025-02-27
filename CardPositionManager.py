@@ -194,7 +194,7 @@ class CardPositionManager:
             player.pos = player_x, player_y
 
             deck_x = player_x + (player.width / 8 - player.deck.width) // 2
-            deck_y = player_y + player.height - player.deck.height
+            deck_y = player_y + player.height - player.deck.height - 10
             if deck_y > player_y + player.height / 3:
                 #print(deck_y, player_y + player.height / 2)
                 deck_y = player_y + player.height / 3
