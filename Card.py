@@ -65,7 +65,7 @@ class Card:
 
         screen.blit(fill_surface, (pos[0], pos[1]))
 
-        pygame.draw.rect(screen, self.color, (pos[0], pos[1], width, height), 2)
+        pygame.draw.rect(screen, self.color, (pos[0], pos[1], width, height), Globals.get_global_small_thickness())
 
         if altered:
             lines = self.generate_lines(pos, width, height)
@@ -143,7 +143,7 @@ class Card:
 
     def render_select_overlay(self, screen):
         green = (0, 255, 0)  # Green color
-        thickness = 4  # Outline thickness
+        thickness = Globals.get_global_thickness()   # Outline thickness
 
         # Create a rectangle for the outline
         outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,

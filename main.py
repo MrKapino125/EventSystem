@@ -27,6 +27,8 @@ if SCREEN_WIDTH > 1920 or SCREEN_HEIGHT > 1080:
     Globals.set_global_small_font_size(14)
     Globals.set_global_enemy_font_size(20)
     Globals.set_global_overlay_font_size(36)
+    Globals.set_global_thickness(4)
+    Globals.set_global_small_thickness(2)
 
 state_manager = State.StateManager()
 
