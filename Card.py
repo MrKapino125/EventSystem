@@ -2,7 +2,7 @@ import json
 import Effect
 import pygame
 import re
-from Globals import GLOBAL_FONT_SIZE, GLOBAL_SMALL_FONT_SIZE, GLOBAL_ENEMY_FONT_SIZE
+import Globals
 
 
 class Card:
@@ -12,9 +12,9 @@ class Card:
         self.width = 0
         self.height = 0
 
-        self.font_size = GLOBAL_FONT_SIZE
+        self.font_size = Globals.get_global_font_size()
         self.font = pygame.font.SysFont('Arial', self.font_size)
-        self.small_font_size = GLOBAL_SMALL_FONT_SIZE
+        self.small_font_size = Globals.get_global_small_font_size()
         self.small_font = pygame.font.SysFont('Arial', self.small_font_size)
 
         self.back_color = (255, 255, 255)
@@ -239,7 +239,7 @@ class PlaceCard(Card):
         if height is None:
             height = self.height
 
-        font = pygame.font.Font(None, GLOBAL_ENEMY_FONT_SIZE)
+        font = pygame.font.Font(None, Globals.get_global_enemy_font_size())
 
         num_place = self.data["pos"]
         max_place = 3
