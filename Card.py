@@ -139,6 +139,11 @@ class Card:
             lines.append(current_line)
             return lines
 
+        _words = get_lines(words)
+
+        if _words[0] == "" or words[0] == " ":
+            _words.remove(_words[0])
+
         return get_lines(words)
 
     def render_select_overlay(self, screen):
