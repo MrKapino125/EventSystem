@@ -7,6 +7,7 @@ import Card
 import sys
 import pygame
 import ctypes
+import Globals
 
 # DPI-Awareness setzen (VOR pygame.init() und pygame.display.set_mode())
 if hasattr(ctypes.windll.user32, 'SetProcessDPIAware'):
@@ -20,6 +21,8 @@ SCREEN_HEIGHT = info.current_h
 
 SCREEN = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Harry Potter: Kampf um Hogwarts!")
+
+
 
 state_manager = State.StateManager()
 

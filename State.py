@@ -800,7 +800,7 @@ class GameState(State):
             if player == target:
                 continue
             for card in player.hand:
-                if "Weasley" in card.date["name"]:
+                if "Weasley" in card.data["name"]:
                     self.apply_effect(effect, source, targets)
                     break
 
