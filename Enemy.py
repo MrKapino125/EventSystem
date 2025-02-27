@@ -172,6 +172,8 @@ class Enemy:
     def apply_effect(self, event, game_state):
         if self.stunned:
             return
+        if self.is_dead:
+            return
 
         if event is None:
             self._execute_active(game_state)
