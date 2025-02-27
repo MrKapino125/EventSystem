@@ -792,7 +792,7 @@ class GameState(State):
         target = event.data['target']
         effect_type = event.data["effect_type"]
         effect_amount = event.data["effect_amount"]
-        effect_target = event.data["effect_target"]
+        effect_target = event.data["effect_target_type"]
 
         effect = self.get_effect_from_type(effect_type, {"amount": effect_amount})
         targets = self._resolve_targets(target, effect_target, None)
