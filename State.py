@@ -681,9 +681,10 @@ class GameState(State):
 
         self.board.shop_cards.remove(card)
 
-        for enemy in self.board.open_enemies:
-            if isinstance(enemy, Enemy.Umbridge):
-                enemy.apply_effect(event, self)
+        if cost >= 4:
+            for enemy in self.board.open_enemies:
+                if isinstance(enemy, Enemy.Umbridge):
+                    enemy.apply_effect(event, self)
 
     def handle_reuse_event(self, event):
         source = event.data['source']

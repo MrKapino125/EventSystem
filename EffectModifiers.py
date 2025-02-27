@@ -148,7 +148,7 @@ class TwoSpellsBoltHealModifier(EffectModifier):
             return effect
 
         card = effect.card
-        if card.data["type"] == "Spell":
+        if card.data["type"] == "spell":
             self.count += 1
         if self.count == 2:
             self.deactivate = True
