@@ -127,7 +127,7 @@ class Board:
                     if len(card) == 0:
                         self.is_hovering = False
                         break
-                if isinstance(card, Deck.Deck):
+                elif isinstance(card, Deck.Deck):
                     if not (len(card) == 1 and isinstance(card[0], Enemy.Voldemort)):
                         self.is_hovering = False
                         break
