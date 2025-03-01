@@ -161,7 +161,7 @@ class TwoSpellsBoltHealModifier(EffectModifier):
 class OneBoltRemoveSkullModifier(EffectModifier):
     def __init__(self, source, game_state):
         self.deactivate = False
-        self.enemies_bolt = zip([game_state.board.open_enemies], [False for _ in range(len(game_state.board.open_enemies))])
+        self.enemies_bolt = dict(zip(game_state.board.open_enemies, [False for _ in range(len(game_state.board.open_enemies))]))
         for enemy, bolted in source.bolts_played_on_enemies:
             self.enemies_bolt[enemy] = bolted
 
