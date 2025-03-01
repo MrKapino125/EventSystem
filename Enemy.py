@@ -340,7 +340,7 @@ class Riddle(Enemy):
             game_state.apply_effect(Effect.DamageEffect(2), self, [game_state.current_player])
             self._execute_active(game_state)
         else:
-            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!", self, is_drop=True)
+            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.drop_callback, game_state.current_player.hand, "Wähle eine Karte zum abwerfen!", self, is_drop=True, prio=False)
 
     def drop_callback(self, game_state):
         selection = game_state.current_selection

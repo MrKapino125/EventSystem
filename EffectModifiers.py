@@ -17,6 +17,8 @@ class CantDrawCardsModifier(EffectModifier):
 
 class CantHealModifier(EffectModifier):
     def modify(self, effect, game_state, source, targets):
+        if not isinstance(targets[0], Player.Player):
+            return effect
         if isinstance(effect, Effect.HealEffect):
             return None
         return effect

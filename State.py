@@ -457,6 +457,8 @@ class GameState(State):
         return True  # Effect is allowed
 
     def apply_effect(self, effect, source, targets):
+        if not targets:
+            return
         for modifier in self.active_modifiers + self.permanent_modifiers:
             effect = modifier.modify(effect, self, source, targets)
             if effect is None:
@@ -1033,6 +1035,10 @@ class GameState(State):
         for button in buttons:
             button.set_text()
 
+        select_text = "Wähle einen Effekt"
+        if amount > 1:
+            select_text = f"Wähle {amount} Effekte"
+
         kwargs = {"source": source, "amount": amount, "options": options, "card": card}
         if callback is None:
             callback = self._effect_choice_callback
@@ -1045,7 +1051,7 @@ class GameState(State):
                         if not [card for card in selector.hand if card.data["type"] == button.effect["card_type"]]:
                             selectables = [s for s in selectables if s != button]
 
-            self.init_choice([selector], amount, kwargs, callback, selectables, "Wähle einen Effekt!", source, False)
+            self.init_choice([selector], amount, kwargs, callback, selectables, select_text, source, False)
 
     def select_card(self, selectors, amount, options, source, select_text, insta_use):
         buttons = []
