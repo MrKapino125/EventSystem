@@ -305,7 +305,7 @@ class GameState(State):
 
         self.dark_arts_cards_left = self.board.active_place.data['dark_arts_cards']
         for enemy in self.board.open_enemies:
-            if isinstance(enemy, Enemy.Bellatrix):
+            if isinstance(enemy, Enemy.Bellatrix) and not enemy.stunned:
                 self.dark_arts_cards_left += 1
 
         self.card_position_manager.realign_board(self.board_pos, self.board_width, self.board_height)
@@ -340,6 +340,8 @@ class GameState(State):
             self.enemies += [Enemy.Barty(), Enemy.Todesser()]
         if self.level >= 5:
             self.enemies += [Enemy.Umbridge(), Enemy.Todesser()]
+        if self.level >= 6:
+            self.enemies += [Enemy.Bellatrix(), Enemy.Greyback()]
 
         #self.enemies = [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Todesser(), Enemy.Todesser()]
 
@@ -412,6 +414,8 @@ class GameState(State):
             modifier = EffectModifiers.EffectPerFirstTypeModifier(effect, card_type, source, self)
         elif modifier_type == "two_spells_bolt_heal":
             modifier = EffectModifiers.TwoSpellsBoltHealModifier(source, self)
+        elif modifier_type == "one_bolt_remove_skull":
+            modifier = EffectModifiers.OneBoltRemoveSkullModifier(source, self)
         else:
             print("Unknown modifier type " + modifier_type)
             return None
@@ -496,6 +500,12 @@ class GameState(State):
         if isinstance(self.current_player, Player.Hermione) and card_data["type"] == "spell":
             self.current_player.apply_hero_effect(event, self)
 
+        if card_data["name"] == "Zaubertränke für Fortgeschrittene":
+            for player in self.players:
+                if player.health == 10:
+                    self.apply_effect(Effect.GiveBoltEffect(1), source, [player])
+                    self.apply_effect(Effect.DrawCardEffect(1), source, [player])
+
     def handle_dark_arts_card_played_event(self, event):
         source = event.data["source"]
         card = event.data["card"]
@@ -548,6 +558,7 @@ class GameState(State):
         if isinstance(target, Enemy.Enemy):
             if isinstance(self.current_player, Player.Ron):
                 self.current_player.apply_hero_effect(event, self)
+            source.bolts_played_on_enemies[target] = True
 
         target.apply_damage_effect(amount, self, event)
 
@@ -559,6 +570,11 @@ class GameState(State):
 
         self.board.active_place.remove_skulls(amount)
 
+        if isinstance(self.board.open_enemies[0], Enemy.Voldemort3) or (len(self.board.enemy_stack) == 1 and self.level == 7):
+            if self.board.enemy_stack:
+                self.board.enemy_stack[0].apply_effect(event, self)
+            else:
+                self.board.open_enemies[0].apply_effect(event, self)
         if "Harry Potter" in self.players_dict and skulls > 0:
             self.players_dict["Harry Potter"].apply_hero_effect(event, self)
 
@@ -892,8 +908,6 @@ class GameState(State):
             if card is not None:
                 select_text = card.data["description"]
             effect = Effect.ReDrawEffect(effect_data["amount"], effect_type.split("_")[1], select_text)
-        elif effect_type == "throw_dice":
-            raise ValueError("throw_dice")
         else:
             raise ValueError(f"Unknown effect type: {effect_type}")
 

@@ -156,3 +156,32 @@ class TwoSpellsBoltHealModifier(EffectModifier):
             game_state.apply_effect(Effect.GiveBoltEffect(1), source, [source])
 
         return effect
+
+
+class OneBoltRemoveSkullModifier(EffectModifier):
+    def __init__(self, source, game_state):
+        self.deactivate = False
+        self.enemies_bolt = zip([game_state.board.open_enemies], [False for _ in range(len(game_state.board.open_enemies))])
+        for enemy, bolted in source.bolts_played_on_enemies:
+            self.enemies_bolt[enemy] = bolted
+
+        if all(self.enemies_bolt.values()):
+            self.deactivate = True
+            game_state.apply_effect(Effect.RemoveSkullEffect(1), source, [None])
+
+    def modify(self, effect, game_state, source, targets):
+        if self.deactivate:
+            return effect
+        if not isinstance(effect, Effect.DamageEffect):
+            return effect
+        if not isinstance(targets[0], Enemy.Enemy):
+            return effect
+
+        target = targets[0]
+        self.enemies_bolt[target] = True
+
+        if all(self.enemies_bolt.values()):
+            self.deactivate = True
+            game_state.apply_effect(Effect.RemoveSkullEffect(1), source, [None])
+
+        return effect

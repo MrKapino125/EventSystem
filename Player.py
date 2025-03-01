@@ -25,6 +25,7 @@ class Player:
         self.discard_pile = Deck.DiscardPile()
         self.is_dead = False
         self.cards_played = []
+        self.bolts_played_on_enemies = {}
 
         self.pos = (0, 0)
         self.width = 0
@@ -148,6 +149,7 @@ class Player:
         self.coins = 0
         self.bolts = 0
         self.cards_played = []
+        self.bolts_played_on_enemies = {}
 
         while len(self.hand) > 0:
             self.discard_pile.append(self.hand.pop())
@@ -250,9 +252,9 @@ class Harry(Player):
         self.effect_played = True
         available_targets = game_state.players
         if 3 <= game_state.level <= 6:
-            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle einen Spieler der einen Blitz erhalten soll", self)
+            game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle einen Spieler der einen Blitz erhalten soll", self, prio=False)
         if game_state.level == 7:
-            game_state.init_choice([game_state.current_player], 2, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle 2 Spieler die einen Blitz erhalten sollen", self)
+            game_state.init_choice([game_state.current_player], 2, {"game_state": game_state}, self.ability_callback, available_targets, "Wähle 2 Spieler die einen Blitz erhalten sollen", self, prio=False)
 
     def ability_callback(self, game_state):
         selection = game_state.current_selection
@@ -340,7 +342,7 @@ class Ron(Player):
                 available_targets = game_state.players
                 game_state.init_choice([game_state.current_player], 1, {"game_state": game_state},
                                        self.ability_callback, available_targets,
-                                       "Wähle einen Spieler der 2 Herzen erhalten soll", self)
+                                       "Wähle einen Spieler der 2 Herzen erhalten soll", self, prio=False)
             elif game_state.level == 7:
                 game_state.apply_effect(effect, self, game_state.players)
 
@@ -378,7 +380,7 @@ class Hermione(Player):
                 available_targets = game_state.players
                 game_state.init_choice([game_state.current_player], 1, {"game_state": game_state},
                                        self.ability_callback, available_targets,
-                                       "Wähle einen Spieler der 1 Münze erhalten soll", self)
+                                       "Wähle einen Spieler der 1 Münze erhalten soll", self, prio=False)
             elif game_state.level == 7:
                 game_state.apply_effect(effect, self, game_state.players)
 

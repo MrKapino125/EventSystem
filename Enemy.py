@@ -478,12 +478,36 @@ class Greyback(Enemy):
                          "ALLE Helden bekommen 3 Herzen. Entfernt 2 Totenköpfe vom aktuellen Ort.")
         self.modifier = EffectModifiers.CantHealModifier()
 
+    def apply_reward(self, game_state):
+        permanent_modifiers = game_state.permanent_modifiers
+        if self.modifier in permanent_modifiers:
+            permanent_modifiers.remove(self.modifier)
+        game_state.apply_effect(Effect.HealEffect(3), self, game_state.players)
+        game_state.apply_effect(Effect.RemoveSkullEffect(2), self, [None])
+
+    def apply_end_turn_effect(self, game_state):
+        stunned_pre = self.stunned
+        super().apply_end_turn_effect(game_state)
+        if stunned_pre and not self.stunned:
+            game_state.permanent_modifiers.append(self.modifier)
+
+    def stun(self, game_state):
+        super().stun(game_state)
+        if self.modifier in game_state.permanent_modifiers:
+            game_state.permanent_modifiers.remove(self.modifier)
+
 
 class Bellatrix(Enemy):
     def __init__(self):
         super().__init__('Bellatrix Lestrange', 9, 6,
                          "Deckt jeden Zug eine zusätzliche Dunkle-Künste-Karte auf.",
                          "ALLE Helden dürfen ihren Ablagestapel nach einem Gegenstand durchsuchen und diesen auf die Hand nehmen. Entfernt 2 Totenköpfe vom aktuellen Ort.")
+
+    def apply_reward(self, game_state):
+        game_state.apply_effect(Effect.RemoveSkullEffect(2), self, [None])
+        players = game_state.players[:]
+        players.reverse()
+        game_state.apply_effect(Effect.ReDrawEffect(1, "object", "Wähle einen Gegenstand"), self, players)
 
 
 class Voldemort(Enemy):
@@ -506,11 +530,20 @@ class Voldemort2(Voldemort):
         super().__init__('Lord Voldemort', 15, 6,
                          "Würfelt mit dem Slytherin-Würfel. Blitz = ALLE Helden verlieren 1 Herz. Münze = Legt 1 Totenkopf auf den aktuellen Ort. Herz = Entfernt 1 Blitz von allen Bösewichten. Karte = ALLE Helden müssen eine Karte abwerfen.")
 
+    def _execute_active(self, game_state):
+        game_state.apply_effect(Effect.ThrowDiceEffect("slytherin", 1, True), self, [game_state.current_player])
+
 
 class Voldemort3(Voldemort):
     def __init__(self):
         super().__init__('Lord Voldemort', 20, 7,
                          "Legt 1 Totenkopf auf den aktuellen Ort. Jedes Mal, wenn Totenköpfe vom Ort entfernt werden, verlieren ALLE Helden 1 Herz.")
+
+    def _execute_active(self, game_state):
+        game_state.apply_effect(Effect.PlaceSkullEffect(1), self, [None])
+
+    def _execute_passive(self, event, game_state):
+        game_state.apply_effect(Effect.DamageEffect(1), self, game_state.players)
 
 
 def load_enemies(level):
