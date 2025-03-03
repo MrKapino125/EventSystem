@@ -154,6 +154,10 @@ class MenuState(State):
 class GameState(State):
     def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager, screen_size):
         super().__init__(state_manager)
+
+        seed = random.randint(0, sys.maxsize)
+        random.seed(seed)
+
         self.event_handler = event_handler
         event_handler.register_listener("damage_taken", self.handle_damage_event)
         event_handler.register_listener("health_gained", self.handle_heal_event)
@@ -261,7 +265,7 @@ class GameState(State):
             return
 
         if len(self.board.enemy_stack) == 1 and isinstance(self.board.enemy_stack[0], Enemy.Voldemort):
-            if not self.voldemort_done:
+            if not self.voldemort_done and not self.board.enemy_stack[0].stunned:
                 self.init_choice([self.current_player], 1, {}, self._select_voldemort_callback, [self.board.enemy_stack], "Aktiviere den Effekt von Lord Voldemort!", None, False)
                 return
         for enemy, is_done in self.enemies_done.items():
@@ -343,7 +347,7 @@ class GameState(State):
         if self.level >= 6:
             self.enemies += [Enemy.Bellatrix(), Enemy.Greyback()]
 
-        #self.enemies = [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Todesser(), Enemy.Todesser()]
+        #self.enemies = [Enemy.Draco(), Enemy.CrabbeGoyle(), Enemy.Todesser()]
 
     def end_turn(self):
         self.current_player.apply_end_turn_effect(self)
@@ -377,6 +381,8 @@ class GameState(State):
             player.reset_effect()
         for enemy in self.board.open_enemies:
             enemy.apply_end_turn_effect(self)
+        if len(self.board.enemy_stack) == 1 and 5 <= self.level <= 7:
+            self.board.enemy_stack[0].apply_end_turn_effect(self)
 
         if self.board.active_place.skulls == self.board.active_place.max_skulls:
             self.event_handler.dispatch_event(Event.PlaceLostEvent())
@@ -584,7 +590,12 @@ class GameState(State):
         source = event.data['source']
         amount = event.data['amount']
 
+        skulls = self.board.active_place.skulls
+
         self.board.active_place.add_skulls(amount)
+
+        if skulls == self.board.active_place.max_skulls:
+            return
 
         for enemy in self.board.open_enemies:
             if isinstance(enemy, Enemy.Draco):
@@ -1101,7 +1112,9 @@ class GameState(State):
     def select_stun(self, selector, select_text):
         select_text = "Betäube einen Gegner!"
 
-        selectables = self.board.open_enemies
+        selectables = [enemy for enemy in self.board.open_enemies if not enemy.is_dead]
+        if 5 <= self.level <= 7 and len(self.board.enemy_stack) == 1:
+            selectables.append(self.board.enemy_stack)
         self.init_choice([selector], 1, {}, self._stun_callback, selectables, select_text, None)
 
     # CALLBACKS
@@ -1111,7 +1124,10 @@ class GameState(State):
         self.resolve_choice()
 
         for enemy in selections:
-            enemy.stun(self)
+            if isinstance(enemy, Deck.Deck):
+                self.board.enemy_stack[0].stun(self)
+            else:
+                enemy.stun(self)
 
     def _drop_cards_callback(self, source, amount, card_type):
         player = self.current_selection.selector

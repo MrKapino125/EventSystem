@@ -10,7 +10,7 @@ import ctypes
 import Globals
 import random
 
-#random.seed(42)
+
 
 # DPI-Awareness setzen (VOR pygame.init() und pygame.display.set_mode())
 if hasattr(ctypes.windll.user32, 'SetProcessDPIAware'):

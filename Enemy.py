@@ -85,7 +85,7 @@ class Enemy:
         screen.blit(health_surface, (health_x, health_y))
 
         if self.stunned:
-            self.render_stunned_overlay(screen)
+            self.render_stunned_overlay(screen, pos, width, height)
 
     def generate_lines(self):
         text = self.name
@@ -117,13 +117,20 @@ class Enemy:
 
         pygame.draw.rect(screen, green, outline_rect, thickness)
 
-    def render_stunned_overlay(self, screen):
+    def render_stunned_overlay(self, screen, pos=None, width=None, height=None):
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
+
         yellow = (255, 255, 0)
         thickness = Globals.get_global_thickness()   # Outline thickness
 
         # Create a rectangle for the outline
-        outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
-                                   self.width + 2 * thickness, self.height + 2 * thickness)
+        outline_rect = pygame.Rect(pos[0] - thickness, pos[1] - thickness,
+                                   width + 2 * thickness, height + 2 * thickness)
 
         pygame.draw.rect(screen, yellow, outline_rect, thickness)
 
@@ -307,7 +314,7 @@ class Riddle(Enemy):
             self.cards_picked = []
             return
 
-        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, selectables, "Wähle einen Verbündeten!", self)
+        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.ability_callback, selectables, "Wähle einen Verbündeten!", self, prio=False)
 
     def ability_callback(self, game_state):
         selection = game_state.current_selection
