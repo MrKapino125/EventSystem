@@ -155,8 +155,8 @@ class GameState(State):
     def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager, screen_size):
         super().__init__(state_manager)
 
-        seed = random.randint(0, sys.maxsize)
-        random.seed(seed)
+        self.seed = random.randint(0, sys.maxsize)
+        random.seed(self.seed)
 
         self.event_handler = event_handler
         event_handler.register_listener("damage_taken", self.handle_damage_event)
@@ -1003,6 +1003,10 @@ class GameState(State):
         print("Enemies:")
         for enemy in self.board.enemy_dump + self.board.open_enemies + self.board.enemy_stack:
             print(enemy)
+
+        print("----------------------------------------------------------------")
+        print("Seed:")
+        print(self.seed)
 
     def init_choice(self, selectors, amount, kwargs, callback, selectables, select_text, source, prio=True, is_drop=False, is_death=False):
         if source is not None:

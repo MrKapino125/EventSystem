@@ -87,6 +87,7 @@ class FirstEnemyKillModifier(EffectModifier):
             if enemy.is_dead:
                 self.deactivate = True
                 game_state.apply_effect(self.effect, source, [source])
+                break
 
     def modify(self, effect, game_state, source, targets):
         if not isinstance(effect, Effect.EnemyDeadEffect):
@@ -108,6 +109,7 @@ class EffectPerFirstTypeModifier(EffectModifier):
                 if card_type == self.card_type:
                     self.deactivate = True
                     game_state.apply_effect(self.effect, source, [source])
+                    break
 
     def modify(self, effect, game_state, source, targets):
         if self.deactivate:
