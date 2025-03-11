@@ -141,6 +141,7 @@ class Enemy:
         source = event.data["source"]
 
         source.bolts -= 1
+        source.bolts_played_on_enemies[self] = True
 
         self.damage()
 
