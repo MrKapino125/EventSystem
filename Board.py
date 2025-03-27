@@ -1,11 +1,14 @@
 import random
 import pygame
+
+import Button
 import Enemy
 import Card
 import Deck
 import Event
 import Player
 import Globals
+import Schwerpunkt
 
 
 class Board:
@@ -101,6 +104,10 @@ class Board:
                         game_state.card_position_manager.align_players()
                 elif isinstance(card, Enemy.Enemy):
                     game_state.current_player.damage_enemy(card, game_state)
+        if event_handler.is_clicked["right"] and not event_handler.is_clicked_lock["right"]:
+            for player in game_state.players:
+                if player.is_hovering(event_handler.mouse_pos):
+                    game_state.open_inventory(player)
 
     def select_tick(self):
         game_state = self.game_state
@@ -114,12 +121,33 @@ class Board:
                     game_state.current_selection.selections.append(selectable)
                     game_state.current_selection.amount -= 1
                     game_state.current_selection.selectables.remove(selectable)
+        if event_handler.is_clicked["right"] and not event_handler.is_clicked_lock["right"]:
+            for player in game_state.players:
+                if player.is_hovering(event_handler.mouse_pos):
+                    game_state.open_inventory(player)
 
-    def overlay_tick(self):
+    def inventory_tick(self):
         game_state = self.game_state
         event_handler = game_state.event_handler
 
-        for card in self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump] + self.game_state.players + [self.enemy_stack]:
+        self.overlay_tick(game_state.items)
+
+        if event_handler.is_clicked["right"] and not event_handler.is_clicked_lock["right"]:
+            game_state.close_inventory()
+        if event_handler.is_clicked["left"] and not event_handler.is_clicked_lock["left"]:
+            for button in game_state.items:
+                if button.card.can_use(game_state):
+                    if button.is_hovering(event_handler.mouse_pos):
+                        button.card.apply_effect(game_state)
+
+    def overlay_tick(self, overlayables=None):
+        game_state = self.game_state
+        event_handler = game_state.event_handler
+
+        if overlayables is None:
+            overlayables = self.shop_cards + [card for player in self.players for card in player.hand] + [player.discard_pile for player in self.players] + self.open_enemies + [self.dark_arts_dump, self.enemy_dump] + self.game_state.players + [self.enemy_stack]
+
+        for card in overlayables:
             is_hovering = card.is_hovering(event_handler.mouse_pos)
 
             if is_hovering:
@@ -173,6 +201,9 @@ class Board:
             for selectable in self.game_state.current_selection.selectables:
                 selectable.render_select_overlay(screen)
 
+        if self.game_state.inventory:
+            self.render_inventory(screen)
+
         self.render_overlay(screen)
 
     def render_select_text(self, screen):
@@ -188,6 +219,22 @@ class Board:
         text_surface = font.render(text, True,  (255, 0, 0))
         text_rect = text_surface.get_rect(center=text_rect.center)
         screen.blit(text_surface, text_rect)
+
+    def render_inventory(self, screen):
+        schwerpunkt_button = self.game_state.items[0]
+
+        overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 220))  # Black with 50% transparency (128/255)
+
+        # Blit the semi-transparent overlay onto the screen.
+        screen.blit(overlay, (0, 0))
+
+        # Render the item onto the screen.
+        schwerpunkt_button.render(screen)
+        if schwerpunkt_button.card.can_use(self.game_state):
+            schwerpunkt_button.render_selected(screen)
+        for horcrux_button in self.game_state.items[1:]:
+            horcrux_button.render(screen)
 
     def render_overlay(self, screen):
         s = pygame.Surface((self.overlay_rect.width, self.overlay_rect.height), pygame.SRCALPHA)  # per-pixel alpha
@@ -223,6 +270,9 @@ class Board:
                 card_name = self.current_card[0].name
                 card_description = self.current_card[0].description
                 reward_text = self.current_card[0].reward_text
+            elif isinstance(self.current_card, Button.CardButton):
+                card_name = self.current_card.card.get_name()
+                card_description = self.current_card.card.get_description()
 
             name_text = self.font.render(card_name, True, (0, 0, 0))
             name_rect = name_text.get_rect(center=(self.overlay_rect.centerx, self.overlay_rect.centery - 40))  # moved name up

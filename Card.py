@@ -28,6 +28,9 @@ class Card:
     def get_name(self):
         return self.data["name"]
 
+    def get_description(self):
+        return self.data["description"]
+
     def play(self, source, game_state):
         pass
 

@@ -54,14 +54,23 @@ class Button:
             y_offset += self.font_size + line_spacing
 
         if self.selected:
-            green = (0, 255, 0)  # Green color
-            thickness = 4  # Outline thickness
+            self.render_selected(screen, pos=pos, width=width, height=height)
 
-            # Create a rectangle for the outline
-            outline_rect = pygame.Rect(self.pos[0] - thickness, self.pos[1] - thickness,
-                                       self.width + 2 * thickness, self.height + 2 * thickness)
+    def render_selected(self, screen, pos=None, width=None, height=None, color=(0, 255, 0)):
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
 
-            pygame.draw.rect(screen, green, outline_rect, thickness)
+        thickness = 4  # Outline thickness
+
+        # Create a rectangle for the outline
+        outline_rect = pygame.Rect(pos[0] - thickness, pos[1] - thickness,
+                                   width + 2 * thickness, height + 2 * thickness)
+
+        pygame.draw.rect(screen, color, outline_rect, thickness)
 
     def render_select_overlay(self, screen, pos=None, width=None, height=None):
         self.render(screen, pos, width, height)
@@ -266,6 +275,22 @@ class CardButton(Button):
         super().__init__()
         self.card = card
 
+    def render(self, screen, pos=None, width=None, height=None):
+        super().render(screen, pos, width, height)
+
     def set_text(self):
-        self.text = f"{self.card.data['name']}"
+        self.text = f"{self.card.get_name()}"
         self.lines = self.generate_lines()
+
+    def render_x(self, screen, pos=None, width=None, height=None):
+        if pos is None:
+            pos = self.pos
+        if width is None:
+            width = self.width
+        if height is None:
+            height = self.height
+
+        gray = (128, 128, 128)  # Graue Farbe
+        overlay = pygame.Surface((width, height), pygame.SRCALPHA)  # Transparente Oberfläche
+        overlay.fill((*gray, 128))  # Füllfarbe mit Alpha-Wert für Transparenz (128 von 255)
+        screen.blit(overlay, pos)

@@ -62,6 +62,14 @@ class GiveCoinsDrawEffect(Effect):
         game_state.event_handler.dispatch_event(Event.CoinsDrawGivenEvent(source, target, self.amount))
 
 
+class GiveBoltHealEffect(Effect):
+    def __init__(self, amount):
+        self.amount = amount
+
+    def apply(self, source, target, game_state):
+        game_state.event_handler.dispatch_event(Event.BoltsHealthGivenEvent(source, target, self.amount))
+
+
 class CardPlayEffect(Effect):
     def __init__(self, card, amount=1):
         self.card = card
@@ -102,11 +110,12 @@ class DropCardsEffect(Effect):
 
 
 class DropCardEffect(Effect):
-    def __init__(self, card):
+    def __init__(self, card, is_death=False):
         self.card = card
+        self.is_death = is_death
 
     def apply(self, source, target, game_state):
-        game_state.event_handler.dispatch_event(Event.CardDroppedEvent(source, target, self.card))
+        game_state.event_handler.dispatch_event(Event.CardDroppedEvent(source, target, self.card, self.is_death))
 
 
 class ReUseEffect(Effect):

@@ -50,8 +50,8 @@ class CardDropEvent(Event):
 
 
 class CardDroppedEvent(Event):
-    def __init__(self, source, target, card):
-        super().__init__("card_dropped", {"source": source, "target": target, "card": card})
+    def __init__(self, source, target, card, is_death):
+        super().__init__("card_dropped", {"source": source, "target": target, "card": card, "is_death": is_death})
 
 
 class CardDrawnEvent(Event):
@@ -107,6 +107,11 @@ class CoinsHealthGivenEvent(Event):
 class CoinsDrawGivenEvent(Event):
     def __init__(self, source, target, amount):
         super().__init__("coins_draw", {"source": source, "target": target, "amount": amount})
+
+
+class BoltsHealthGivenEvent(Event):
+    def __init__(self, source, target, amount):
+        super().__init__("bolts_health", {"source": source, "target": target, "amount": amount})
 
 
 class ThrowDiceEvent(Event):

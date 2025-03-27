@@ -9,11 +9,13 @@ import Enemy
 import Event
 import Eventhandler
 import EffectModifiers
+import Globals
 import Player
 import Board
 import Button
 import pygame
 from CardPositionManager import CardPositionManager
+import Schwerpunkt
 
 
 class State:
@@ -100,7 +102,10 @@ class MenuState(State):
         self.submit_button.render(screen)
 
     def on_start_click(self):
-        self.state_manager.switch_state(GameState(self.event_handler, dict(zip([player.name for player in self.selected_players], self.selected_players)), self.selected_level, self.state_manager, self.screen_size))
+        if self.selected_level >= 6:
+            self.state_manager.switch_state(SchwerpunktState(self.state_manager, self.event_handler, self.screen_size, self.selected_players, self.selected_level))
+        else:
+            self.state_manager.switch_state(GameState(self.event_handler, dict(zip([player.name for player in self.selected_players], self.selected_players)), self.selected_level, self.state_manager, self.screen_size))
 
     def align_buttons(self):
         buttons = self.level_buttons
@@ -151,8 +156,229 @@ class MenuState(State):
         self.submit_button.pos = submit_x, submit_y
 
 
+class SchwerpunktState(State):
+    def __init__(self, state_manager, event_handler, screen_size, players, level):
+        super().__init__(state_manager)
+        self.event_handler = event_handler
+        self.screen_size = screen_size
+        self.players = players
+        self.level = level
+
+        self.schwerpunkte = [Schwerpunkt.Zaubertranke(), Schwerpunkt.GeschichteZauberei(), Schwerpunkt.Verteidigung(), Schwerpunkt.Arithmantik(), Schwerpunkt.Krauterkunde(), Schwerpunkt.Zauberkunst(), Schwerpunkt.Besenflug(), Schwerpunkt.Wahrsagen(), Schwerpunkt.Verwandlung()]
+
+        self.schwerpunkt_buttons = []
+        for idx, schwerpunkt in enumerate(self.schwerpunkte):
+            button = Button.CardButton(schwerpunkt)
+            button.width, button.height = self.screen_size[0] / 10, self.screen_size[0] / 10
+            button.set_text()
+            self.schwerpunkt_buttons.append(button)
+
+        self.player_buttons = []
+        for i in range(4):
+            button = Button.Button()
+            button.width, button.height = self.screen_size[0] / 10, self.screen_size[0] / 6
+            button.text = self.players[i].name
+            button.lines = button.generate_lines()
+            self.player_buttons.append(button)
+
+        self.submit_button = Button.Button()
+        self.submit_button.width, self.submit_button.height = self.screen_size[0] / 20, self.screen_size[1] / 20
+        self.submit_button.text = 'Start'
+        self.submit_button.lines = self.submit_button.generate_lines()
+
+        self.align_buttons()
+
+        self.overlay_width = screen_size[0] // 4
+        self.overlay_height = screen_size[1]
+        self.overlay_rect = pygame.Rect(-self.overlay_width, 0, self.overlay_width,
+                                        self.overlay_height)  # start offscreen
+        self.overlay_target_x = 0
+        self.overlay_speed = 5 * self.overlay_width / 16  # Pixels per frame
+        self.text_visible = False
+        self.text_delay_counter = 0
+        self.text_delay = 1  # frames
+        self.current_schwerpunkt = None
+        self.font = pygame.font.Font(None, Globals.get_global_overlay_font_size())
+        self.is_hovering = False
+
+        self.player_schwerpunkt = dict(zip(players, [None for _ in range(len(players))]))
+        self.selected_player = players[0]
+        self.player_buttons[0].selected = True
+
+    def get_player(self, player_name):
+        for player in self.players:
+            if player.name == player_name:
+                return player
+
+    def tick(self):
+        self.overlay_tick()
+
+        if self.event_handler.is_clicked["left"] and not self.event_handler.is_clicked_lock["left"]:
+            for i, button in enumerate(self.schwerpunkt_buttons):
+                if button.is_hovering(self.event_handler.mouse_pos):
+                    if button.card in self.player_schwerpunkt.values():
+                        break
+                    for b in self.schwerpunkt_buttons:
+                        b.selected = False
+                    self.player_schwerpunkt[self.selected_player] = button.card
+                    button.selected = True
+                    break
+
+            for i, button in enumerate(self.player_buttons):
+                if button.is_hovering(self.event_handler.mouse_pos):
+                    for b in self.player_buttons:
+                        b.selected = False
+                    for b in self.schwerpunkt_buttons:
+                        b.selected = False
+                    self.selected_player = self.players[i]
+                    button.selected = True
+                    if self.player_schwerpunkt[self.selected_player] is not None:
+                        for button in self.schwerpunkt_buttons:
+                            if button.card == self.player_schwerpunkt[self.selected_player]:
+                                button.selected = True
+                                break
+                    break
+
+            if self.submit_button.is_hovering(self.event_handler.mouse_pos) and all(self.player_schwerpunkt.values()):
+                self.on_start_click()
+
+    def render(self, screen):
+        for schwerpunkt in self.schwerpunkt_buttons:
+            schwerpunkt.render(screen)
+            if schwerpunkt.card in [s for p, s in self.player_schwerpunkt.items() if p != self.selected_player]:
+                schwerpunkt.render_x(screen)
+
+        for i, player in enumerate(self.player_buttons):
+            player.render(screen)
+            if self.player_schwerpunkt[self.players[i]] is not None and not (self.players[i] is self.selected_player):
+                player.render_selected(screen, color=(0, 0, 255))
+        self.submit_button.render(screen)
+
+        self.render_overlay(screen)
+
+    def overlay_tick(self):
+        event_handler = self.event_handler
+
+        for schwerpunkt in self.schwerpunkt_buttons:
+            is_hovering = schwerpunkt.is_hovering(event_handler.mouse_pos)
+
+            if is_hovering:
+                self.current_schwerpunkt = schwerpunkt
+                self.is_hovering = True
+                break
+        else:
+            self.is_hovering = False
+
+        if self.is_hovering and self.overlay_rect.x < self.overlay_target_x:
+            self.overlay_rect.x += self.overlay_speed
+            if self.overlay_rect.x >= self.overlay_target_x:
+                self.overlay_rect.x = self.overlay_target_x
+                self.text_visible = True
+
+        elif not self.is_hovering and self.overlay_rect.x > -self.overlay_width:
+            self.overlay_rect.x -= self.overlay_speed
+            if self.overlay_rect.x <= -self.overlay_width:
+                self.overlay_rect.x = -self.overlay_width
+                self.text_visible = False
+
+    def render_overlay(self, screen):
+        s = pygame.Surface((self.overlay_rect.width, self.overlay_rect.height), pygame.SRCALPHA)  # per-pixel alpha
+        s.fill((128, 128, 128, 128))  # values 0-255
+        screen.blit(s, (self.overlay_rect.x, self.overlay_rect.y))
+
+        if self.text_visible:
+            card_name = self.current_schwerpunkt.card.get_name()
+            card_description = self.current_schwerpunkt.card.description
+
+
+            name_text = self.font.render(card_name, True, (0, 0, 0))
+            name_rect = name_text.get_rect(center=(self.overlay_rect.centerx, self.overlay_rect.centery - 40))  # moved name up
+
+            self.draw_multiline_text(screen, card_name, self.font, (0, 0, 0), name_rect)
+
+            effect_rect = pygame.Rect(self.overlay_rect.x + 10, self.overlay_rect.centery - 20, self.overlay_rect.width - 20, 100)
+            reward_rect = pygame.Rect(self.overlay_rect.x + 10, self.overlay_rect.centery - 20 + effect_rect.height + 20, self.overlay_rect.width - 20, 100)
+
+            self.draw_multiline_text(screen, card_description, self.font, (0, 0, 0), effect_rect)  # added small padding
+
+    def align_buttons(self):
+        screen_size = self.screen_size
+
+        screen_width, screen_height = screen_size
+
+        # Calculate spacing (adjust as needed)
+        horizontal_spacing_top = 25
+        horizontal_spacing_bottom = horizontal_spacing_top
+        vertical_spacing = 25
+
+        buttons = self.player_buttons
+
+        button_width = buttons[0].width
+        player_button_height = buttons[0].height
+
+        initial_horizontal = (screen_width - (4 * button_width + 3 * horizontal_spacing_top)) / 2
+
+        row_y = vertical_spacing
+        for i in range(4):
+            x = initial_horizontal + i * (button_width + horizontal_spacing_top)
+            buttons[i].pos = (x, row_y)
+
+        buttons = self.schwerpunkt_buttons
+        button_width = buttons[0].width
+        button_height = buttons[0].height
+
+        initial_horizontal_top = (screen_width - (4 * button_width + 3 * horizontal_spacing_top)) / 2
+
+        top_row_y = row_y + player_button_height + 50  # Corrected top row Y position
+        for i in range(4):
+            x = initial_horizontal_top + i * (button_width + horizontal_spacing_top)
+            buttons[i].pos = (x, top_row_y)
+
+        # Position the bottom 3 buttons
+        bottom_row_y = top_row_y + button_height + 10  # Corrected bottom row Y position
+        for i in range(4):
+            x = initial_horizontal_top + i * (
+                        button_width + horizontal_spacing_bottom)  # offset to center
+            buttons[i + 4].pos = (x, bottom_row_y)
+
+        bottom_y = bottom_row_y + button_height + 10
+        x = (screen_width - button_width) // 2
+        buttons[8].pos = (x, bottom_y)
+
+        submit_button_width = self.submit_button.width
+        submit_button_height = self.submit_button.height
+
+        submit_y = screen_height - (vertical_spacing + submit_button_height)
+        submit_x = (screen_width - submit_button_width) / 2
+        self.submit_button.pos = submit_x, submit_y
+
+    def draw_multiline_text(self, surface, text, font, color, rect):
+        words = text.split()
+        lines = []
+        current_line = []
+        for word in words:
+            test_line = " ".join(current_line + [word])
+            test_rect = font.render(test_line, True, color).get_rect()
+            if test_rect.width <= rect.width:
+                current_line.append(word)
+            else:
+                lines.append(" ".join(current_line))
+                current_line = [word]
+        lines.append(" ".join(current_line))  # Add the last line
+
+        y_offset = 0
+        for line in lines:
+            text_surface = font.render(line, True, color)
+            text_rect = text_surface.get_rect(center=(rect.centerx, rect.centery + y_offset))
+            surface.blit(text_surface, text_rect)
+            y_offset += text_rect.height  # Move down for the next line
+
+    def on_start_click(self):
+        self.state_manager.switch_state(GameState(self.event_handler, dict(zip([player.name for player in self.players], self.players)), self.level, self.state_manager, self.screen_size, self.player_schwerpunkt))
+
+
 class GameState(State):
-    def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager, screen_size):
+    def __init__(self, event_handler: Eventhandler.EventHandler, players_dict, level, state_manager, screen_size, player_schwerpunkt_dict=None):
         super().__init__(state_manager)
 
         self.seed = random.randint(0, sys.maxsize)
@@ -178,6 +404,7 @@ class GameState(State):
         event_handler.register_listener("draw_top", self.handle_draw_top_event)
         event_handler.register_listener("coins_health", self.handle_coins_health_event)
         event_handler.register_listener("coins_draw", self.handle_coins_draw_event)
+        event_handler.register_listener("bolts_health", self.handle_bolts_health_event)
         event_handler.register_listener("throw_dice", self.handle_throw_dice_event)
         event_handler.register_listener("check_hand", self.handle_check_hand_event)
         event_handler.register_listener("weasley", self.handle_weasley_event)
@@ -186,10 +413,16 @@ class GameState(State):
         self.players = list(players_dict.values())
         self.level = level
         self.screen_size = screen_size
+        if player_schwerpunkt_dict is not None:
+            for player, schwerpunkt in player_schwerpunkt_dict.items():
+                player.schwerpunkt = schwerpunkt
+                schwerpunkt.belonging = player
 
         self.select = False
         self.current_selection = None
         self.selection_pipeline = []
+        self.inventory = False
+        self.items = []
 
         self.end_turn_button = Button.Button()
 
@@ -243,8 +476,10 @@ class GameState(State):
             players = [player1, player2, player3, player4]
             self.state_manager.switch_state(MenuState(self.state_manager, self.event_handler, self.screen_size, players))
 
-        if not self.select:
+        if not self.select and not self.inventory:
             self.regular_tick()
+        elif self.inventory:
+            self.inventory_tick()
         else:
             self.select_tick()
 
@@ -295,11 +530,31 @@ class GameState(State):
 
         self.board.select_tick()
 
+    def inventory_tick(self):
+        self.board.inventory_tick()
+
     def render(self, screen):
         for player in self.players:
             player.render(screen)
         self.end_turn_button.render(screen)
         self.board.render(screen)
+
+    def open_inventory(self, player):
+        self.inventory = True
+        schwerpunkt_button = Button.CardButton(player.schwerpunkt)
+        self.items = [schwerpunkt_button]
+        width = self.screen_size[0] / 3
+        height = 3 * self.screen_size[1] / 8
+        y = 20
+        x = (self.screen_size[0] - width) / 2
+        schwerpunkt_button.pos = x, y
+        schwerpunkt_button.width = width
+        schwerpunkt_button.height = height
+        schwerpunkt_button.set_text()
+
+    def close_inventory(self):
+        self.inventory = False
+        self.items = []
 
     def init_round(self):
         self.board.draw_shop_cards()
@@ -476,6 +731,7 @@ class GameState(State):
     # EVENTHANDLER #
 
     def handle_card_played_event(self, event):
+        print(self.current_player.bolts_played_on_enemies)
         source = event.data["source"]
         card = event.data["card"]
         card_data = card.data
@@ -507,6 +763,11 @@ class GameState(State):
 
         if isinstance(self.current_player, Player.Hermione) and card_data["type"] == "spell":
             self.current_player.apply_hero_effect(event, self)
+
+        if isinstance(self.current_player.schwerpunkt, Schwerpunkt.Wahrsagen) and card_data["type"] == "object":
+            self.current_player.schwerpunkt.apply_effect(self, event)
+        if isinstance(self.current_player.schwerpunkt, Schwerpunkt.Zaubertranke):
+            self.current_player.schwerpunkt.apply_effect(self, event)
 
         if card_data["name"] == "Zaubertränke für Fortgeschrittene":
             for player in self.players:
@@ -552,11 +813,15 @@ class GameState(State):
 
         health = target.health
 
+        if isinstance(self.current_player.schwerpunkt, Schwerpunkt.Krauterkunde) and isinstance(target, Player.Player):
+            self.current_player.schwerpunkt.apply_effect(self, event)
+
         target.apply_heal_effect(amount, self)
 
         if isinstance(target, Player.Player):
-            if isinstance(self.current_player, Player.Neville) and 0 < health < 10:
+            if isinstance(self.current_player, Player.Neville) and (0 < health < 10 or self.level == 7):
                 self.current_player.apply_hero_effect(event, self)
+
 
     def handle_damage_event(self, event):
         source = event.data['source']
@@ -566,7 +831,6 @@ class GameState(State):
         if isinstance(target, Enemy.Enemy):
             if isinstance(self.current_player, Player.Ron):
                 self.current_player.apply_hero_effect(event, self)
-            source.bolts_played_on_enemies[target] = True
 
         target.apply_damage_effect(amount, self, event)
 
@@ -675,6 +939,11 @@ class GameState(State):
             if isinstance(enemy, Enemy.CrabbeGoyle):
                 enemy.apply_effect(event, self)
 
+        if isinstance(source, Enemy.Enemy) or isinstance(source, Card.DarkArtsCard):
+            for player in self.players:
+                if isinstance(player.schwerpunkt, Schwerpunkt.Verteidigung):
+                    player.schwerpunkt.apply_effect(self, event)
+
         if isinstance(source, Player.Player):
             if source.cards_played:
                 last_played = source.cards_played[-1]
@@ -707,6 +976,13 @@ class GameState(State):
 
         cost = card.data["cost"]
         source.coins -= cost
+        if isinstance(source.schwerpunkt, Schwerpunkt.Arithmantik):
+            for effect in card.data["effects"]:
+                if effect["type"] == "throw_dice":
+                    source.coins += 1
+                    break
+        if isinstance(source.schwerpunkt, Schwerpunkt.GeschichteZauberei) and card.data["type"] == "spell":
+            source.schwerpunkt.apply_effect(self, event)
 
         self.board.shop_cards.remove(card)
 
@@ -779,6 +1055,14 @@ class GameState(State):
 
         self.apply_effect(Effect.DrawCardEffect(amount), source, [target])
         self.apply_effect(Effect.GiveCoinsEffect(amount), source, [target])
+
+    def handle_bolts_health_event(self, event):
+        source = event.data['source']
+        target = event.data['target']
+        amount = event.data['amount']
+
+        self.apply_effect(Effect.HealEffect(amount), source, [target])
+        self.apply_effect(Effect.GiveBoltEffect(amount), source, [target])
 
     def handle_throw_dice_event(self, event):
         source = event.data['source']
@@ -1030,16 +1314,21 @@ class GameState(State):
         self.select = False
         self.current_selection = None
 
-    def select_targets(self, selectors, amount, valid_targets, source, card, effect, callback):
+    def select_targets(self, selectors, amount, valid_targets, source, card, effect, callback=None, prio=True):
         selectables = valid_targets
 
         select_text = ""
         if card is not None:
-            select_text = f"Wähle {amount} Helden für die Karte {card.data['name']}"
+            if isinstance(card, Schwerpunkt.Schwerpunkt):
+                select_text = f"Wähle {amount} Helden für die Karte {card.get_name()}"
+            else:
+                select_text = f"Wähle {amount} Helden für die Karte {card.data['name']}"
         selection_kwargs = {"amount": amount, "valid_targets": valid_targets, "source": source, "card": card, "effect": effect}
 
         #print(selectors, amount, selection_kwargs, callback, selectables, select_text)
-        self.init_choice(selectors, amount, selection_kwargs, callback, selectables, select_text, source)
+        if callback is None:
+            callback = self._select_player_callback
+        self.init_choice(selectors, amount, selection_kwargs, callback, selectables, select_text, source, prio=prio)
 
     def select_effect(self, selectors, amount, options, source, card, callback=None):
         buttons = []
@@ -1137,7 +1426,7 @@ class GameState(State):
         player = self.current_selection.selector
         selections = self.current_selection.selections
         for card in selections:
-            self.apply_effect(Effect.DropCardEffect(card), source, [player])
+            self.apply_effect(Effect.DropCardEffect(card, self.current_selection.is_death), source, [player])
 
         self.resolve_choice()
 
@@ -1169,7 +1458,7 @@ class GameState(State):
 
         self.resolve_choice()
 
-    def _select_dice_callback(self, event):
+    def _select_dice_callback(self, event, again=False):
         selection = self.current_selection
         selections = self.current_selection.selections
         self.resolve_choice()
@@ -1185,6 +1474,41 @@ class GameState(State):
 
         outcome = self._throw_dice(dice_type)
 
+        button = Button.Button("Okay!")
+        selectables = [button]
+        if isinstance(target.schwerpunkt, Schwerpunkt.Arithmantik) and not again:
+            button2 = Button.Button("Neu werfen!")
+            selectables.append(button2)
+
+        self.card_position_manager.align_buttons(selectables)
+
+        for button in selectables:
+            button.lines = button.generate_lines()
+
+        translation = {"coin": "Münze",
+                       "bolt": "Blitz",
+                       "heart": "Herz",
+                       "card": "Karte"}
+
+        select_text = f"Resultat: {translation[outcome]}!"
+        callback = self._dice_result_callback
+        kwargs = {"source": source, "outcome": outcome, "is_evil": is_evil}
+        if isinstance(target.schwerpunkt, Schwerpunkt.Arithmantik) and not again:
+            callback = self._dice_intermediary
+            kwargs = {"event": event, "outcome": outcome, "dice_type": dice_type}
+        self.init_choice([selection.selector], 1, kwargs, callback, selectables, select_text, None)
+
+    def _dice_intermediary(self, event, outcome, dice_type):
+        selection = self.current_selection
+        selections = self.current_selection.selections
+        if selections[0].text == "Okay!":
+            self._dice_result_callback(event.data["source"], outcome, event.data["is_evil"])
+        else:
+            event.data["dice_type"] = dice_type
+            self._select_dice_callback(event, True)
+
+    def _dice_result_callback(self, source, outcome, is_evil):
+        self.resolve_choice()
         match outcome:
             case "coin":
                 if is_evil:
@@ -1208,17 +1532,6 @@ class GameState(State):
                     self.select_drop_cards(players, None, 1, source)
                 else:
                     self.apply_effect(Effect.DrawCardEffect(1), source, self.players)
-
-        button = Button.Button("Okay!")
-        selectables = [button]
-        self.card_position_manager.align_buttons(selectables)
-        button.lines = button.generate_lines()
-
-        translation = {"coin": "Münze",
-                       "bolt": "Blitz",
-                       "heart": "Herz",
-                       "card": "Karte"}
-        self.init_choice([selection.selector], 1, {}, self._dummy_callback, selectables, f"Resultat: {translation[outcome]}", None)
 
     def _dummy_callback(self):
         self.resolve_choice()
@@ -1246,6 +1559,7 @@ class StateManager:
     def __init__(self):
         self.current_state = None
         self.game_data = {}
+        self.last_states = []
 
     def switch_state(self, new_state, data=None):
         if data:

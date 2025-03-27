@@ -4,6 +4,7 @@ import Card
 import Effect
 import Enemy
 import Event
+import Schwerpunkt
 from State import GameState
 import Deck
 import pygame
@@ -16,6 +17,7 @@ class Player:
         self.names = self.name.split(" ")
         self.description1 = description1
         self.description2 = description2
+        self.schwerpunkt = None
 
         self.health = 10
         self.coins = 0
@@ -140,6 +142,11 @@ class Player:
         cost = card.data["cost"]
         if self.coins >= cost:
             game_state.event_handler.dispatch_event(Event.BuyCardEvent(self, card))
+        elif isinstance(self.schwerpunkt, Schwerpunkt.Arithmantik) and self.coins >= cost-1:
+            for effect in card.data["effects"]:
+                if effect["type"] == "throw_dice":
+                    game_state.event_handler.dispatch_event(Event.BuyCardEvent(self, card))
+                    break
 
     def damage_enemy(self, enemy, game_state):
         if self.bolts > 0:
@@ -154,6 +161,7 @@ class Player:
         while len(self.hand) > 0:
             self.discard_pile.append(self.hand.pop())
         self.draw_5()
+        self.schwerpunkt.apply_end_turn_effect(game_state)
 
     def reset_effect(self):
         pass
@@ -194,8 +202,9 @@ class Player:
         if not self.deck:
             self.reshuffle_deck()
 
-        card = self.deck.pop()
-        self.hand.append(card)
+        if self.deck:
+            card = self.deck.pop()
+            self.hand.append(card)
 
     def discard_card(self, card):
         self.hand.remove(card)
