@@ -940,9 +940,8 @@ class GameState(State):
                 enemy.apply_effect(event, self)
 
         if isinstance(source, Enemy.Enemy) or isinstance(source, Card.DarkArtsCard):
-            for player in self.players:
-                if isinstance(player.schwerpunkt, Schwerpunkt.Verteidigung):
-                    player.schwerpunkt.apply_effect(self, event)
+            if isinstance(target.schwerpunkt, Schwerpunkt.Verteidigung):
+                target.schwerpunkt.apply_effect(self, event)
 
         if isinstance(source, Player.Player):
             if source.cards_played:

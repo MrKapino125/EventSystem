@@ -1,3 +1,4 @@
+import Button
 import Card
 import Effect
 import Enemy
@@ -136,10 +137,14 @@ class Zauberkunst(Schwerpunkt):
         self.deactivate = False
 
     def _apply_active(self, game_state):
+        if self.deactivate:
+            return
+
         game_state.inventory = False
         selectables = [card for card in self.belonging.hand if card.data["type"] == "spell"]
         game_state.init_choice([game_state.current_player], 2, {"game_state": game_state}, self.effect_callback,
                                selectables, "Wähle 2 Sprüche!", self, prio=False)
+        self.deactivate = True
 
     def effect_callback(self, game_state):
         selection = game_state.current_selection
@@ -152,7 +157,6 @@ class Zauberkunst(Schwerpunkt):
 
         game_state.apply_effect(Effect.GiveCoinsEffect(1), self, game_state.players)
         game_state.apply_effect(Effect.DrawCardEffect(1), self, game_state.players)
-        self.deactivate = True
 
     def can_use(self, game_state):
         if self.deactivate:
@@ -180,6 +184,7 @@ class Besenflug(Schwerpunkt):
         if self.belonging.coins < 5 or self.deactivate:
             return
 
+        game_state.inventory = False
         game_state.apply_effect(Effect.RemoveSkullEffect(1), self, [None])
         self.belonging.coins -= 5
         self.deactivate = True
@@ -209,7 +214,48 @@ class Verwandlung(Schwerpunkt):
         self.deactivate = False
 
     def _apply_active(self, game_state):
-        pass
+        if self.deactivate:
+            return
+
+        game_state.inventory = False
+        selectables = [card for card in self.belonging.hand if card.data["type"] == "object"]
+        game_state.init_choice([game_state.current_player], 1, {"game_state": game_state}, self.effect_callback,
+                               selectables, "Wähle einen Gegenstand!", self, prio=False)
+        self.deactivate = True
+
+    def effect_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+        if not selection.selections:
+            return
+
+        card = selection.selections[0]
+        game_state.apply_effect(Effect.DropCardEffect(card), self, [self.belonging])
+
+        buttons = []
+        for card in self.belonging.deck:
+            if card.data["cost"] > 5:
+                continue
+            button = Button.CardButton(card)
+            buttons.append(button)
+        game_state.card_position_manager.align_buttons(buttons)
+        for button in buttons:
+            button.set_text()
+
+        game_state.init_choice([self.belonging], 1, {"game_state": game_state}, self.card_callback, buttons, "Nimm eine Karte auf die Hand!", self)
+
+    def card_callback(self, game_state):
+        selection = game_state.current_selection
+        selections = selection.selections
+        game_state.resolve_choice()
+        if not selections:
+            return
+
+        card = selections[0].card
+        selection.selector.deck.remove(card)
+        selection.selector.hand.append(card)
+
+
 
     def can_use(self, game_state):
         if self.deactivate:
