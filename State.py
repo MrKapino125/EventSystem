@@ -731,7 +731,6 @@ class GameState(State):
     # EVENTHANDLER #
 
     def handle_card_played_event(self, event):
-        print(self.current_player.bolts_played_on_enemies)
         source = event.data["source"]
         card = event.data["card"]
         card_data = card.data
