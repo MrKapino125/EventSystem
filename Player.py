@@ -237,7 +237,8 @@ class Player:
         game_state.select_drop_cards([self], None, len(self.hand) // 2, source, is_death=True)
 
     def shuffle_deck(self):
-        random.shuffle(self.deck)
+        if self.deck:
+            random.shuffle(self.deck)
 
     def reshuffle_deck(self):
         if self.deck:

@@ -205,7 +205,31 @@ class Wahrsagen(Schwerpunkt):
         super().__init__("Wahrsagen", "Jedes Mal, wenn du einen Gegenstand ausspielst, darfst du die oberste Karte deines Nachziehstapels anschauen und dich entscheiden, ob du die Karte dort lassen oder abwerfen möchtest.")
 
     def _apply_passive(self, game_state, event):
-        pass
+        if not self.belonging.deck:
+            return
+
+        card = self.belonging.deck[-1]
+        buttons = [Button.Button("Liegen lassen"), Button.Button("Abwerfen")]
+        game_state.card_position_manager.align_buttons(buttons)
+        for button in buttons:
+            button.lines = button.generate_lines()
+
+        game_state.init_choice([self.belonging], 1, {"game_state": game_state}, self.effect_callback, buttons, f"Willst du die Karte {card.get_name()} abwerfen?", self, prio=False)
+
+    def effect_callback(self, game_state):
+        selection = game_state.current_selection
+        game_state.resolve_choice()
+        if not selection.selections:
+            return
+        button = selection.selections[0]
+        if button.text == "Liegen lassen":
+            return
+        if not self.belonging.deck:
+            return
+
+        card = self.belonging.deck.pop()
+        self.belonging.hand.append(card)
+        game_state.event_handler.dispatch_event(Event.CardDroppedEvent(self, self.belonging, card))
 
 
 class Verwandlung(Schwerpunkt):
@@ -254,8 +278,7 @@ class Verwandlung(Schwerpunkt):
         card = selections[0].card
         selection.selector.deck.remove(card)
         selection.selector.hand.append(card)
-
-
+        selection.selector.shuffle_deck()
 
     def can_use(self, game_state):
         if self.deactivate:

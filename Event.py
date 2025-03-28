@@ -50,7 +50,7 @@ class CardDropEvent(Event):
 
 
 class CardDroppedEvent(Event):
-    def __init__(self, source, target, card, is_death):
+    def __init__(self, source, target, card, is_death=False):
         super().__init__("card_dropped", {"source": source, "target": target, "card": card, "is_death": is_death})
 
 
